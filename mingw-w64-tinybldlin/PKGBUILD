@@ -1,0 +1,47 @@
+####
+#
+# Based on packages found at these URLs
+#     https://aur.archlinux.org/packages/tinybldlin/
+#
+# Maintainer: Tim S <stahta01@gmail.com>
+#
+####
+
+# Packages that are assumed to be installed when building this package.
+#   pacman -S --needed --asdeps base-devel mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain
+
+_realname=tinybldlin
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgbase=mingw-w64-${_realname}
+pkgver=0.8.1
+pkgrel=1
+pkgdesc="Tiny PIC Bootloader for Microchip microcontrollers, GNU/Linux port (mingw-w64)"
+arch=('any')
+url="http://tinybldlin.sourceforge.net/index.php"
+license=('GPL2')
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-wxWidgets"
+  "${MINGW_PACKAGE_PREFIX}-wxPython"
+  "${MINGW_PACKAGE_PREFIX}-python2"
+)
+conflicts=('tinybldlin<0.8.1')
+source=("https://sourceforge.net/projects/tinybldlin/files/${_realname}-$pkgver-src.tar.gz")
+sha256sums=('762dd9e1c22744ef19269d93537fad881641806b9179204751563bcaa77c070d')
+
+prepare() {
+  cd "$srcdir/${_realname}"
+  rm -r .bzr
+  rm -r debian
+  cd "$srcdir/${_realname}/src/bin/"
+  sed -i 's|python|python2|g' tinybldlin
+}
+
+build() {
+  cd "$srcdir/${_realname}"
+  make
+}
+
+package() {
+  cd "$srcdir/${_realname}"
+  make DESTDIR="$pkgdir/" install
+}
