@@ -1,0 +1,75 @@
+From 426360bdfd3ef4a09edbc6d59d495a5d23e7c0b3 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Mon, 19 Mar 2018 23:47:48 -0400
+Subject: [PATCH 16/22] Unicode: Add wxS()
+
+---
+ src/ShareManager.cpp | 4 ++--
+ src/mxSource.cpp     | 6 +++---
+ src/mxUtils.cpp      | 2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/ShareManager.cpp b/src/ShareManager.cpp
+index b3d5446..de475b5 100644
+--- a/src/ShareManager.cpp
++++ b/src/ShareManager.cpp
+@@ -284,7 +284,7 @@ void ShareManager::OnSocketEvent(wxSocketEvent *event) {
+ 		} else if (event->GetSocketEvent()==wxSOCKET_INPUT) { // if comes a piece of source
+ 			int n=0;
+ 			if (it->second.len==-1) { // if that's the first message, get the source len
+-				wxChar buf[25]="a";
++				wxChar buf[25]=wxS("a");
+ 				while (n<25) {
+ 					sock->Read(buf+n,1);
+ 					if (buf[n++]==' ') break;
+@@ -331,7 +331,7 @@ void ShareManager::OnSocketEvent(wxSocketEvent *event) {
+ 		if (event->GetSocketEvent()==wxSOCKET_INPUT) { // if ask for something
+ 			
+ 			// read the request
+-			wxChar buf[256]="";
++			wxChar buf[256]=wxS("");
+ 			event->GetSocket()->Read(buf,255);
+ 			HashStringSource it;
+ 			
+diff --git a/src/mxSource.cpp b/src/mxSource.cpp
+index c717d4d..47ffc53 100644
+--- a/src/mxSource.cpp
++++ b/src/mxSource.cpp
+@@ -148,7 +148,7 @@ void NavigationHistory::Next() {
+ #define STYLE_IS_COMMENT(s) (s==wxSTC_C_COMMENT || s==wxSTC_C_COMMENTLINE || s==wxSTC_C_COMMENTLINEDOC || s==wxSTC_C_COMMENTDOC || s==wxSTC_C_COMMENTDOCKEYWORD || s==wxSTC_C_COMMENTDOCKEYWORDERROR)
+ 
+ static const wxChar* s_reserved_keywords =
+-	"and asm auto break case catch class const const_cast "
++	wxS("and asm auto break case catch class const const_cast ")
+ 	"continue default delete do dynamic_cast else enum explicit "
+ 	"export extern false for friend if goto inline "
+ 	"mutable namespace new not operator or private protected public "
+@@ -157,10 +157,10 @@ static const wxChar* s_reserved_keywords =
+ 	"typename union using virtual while xor "
+ 	"auto constexpr decltype static_assert final override noexcept nullptr"; // c++ 2011
+ static const wxChar* s_types_keywords =
+-	"bool char const double float int long mutable register "
++	wxS("bool char const double float int long mutable register ")
+ 	"short signed static unsigned void volatile wchar_t";
+ static const wxChar* s_doxygen_keywords =
+-	"a addindex addtogroup anchor arg attention author b brief bug c "
++	wxS("a addindex addtogroup anchor arg attention author b brief bug c ")
+ 	"class code date def defgroup deprecated dontinclude e em endcode "
+ 	"endhtmlonly endif endlatexonly endlink endverbatim enum example "
+ 	"exception f$ f[ f] file fn hideinitializer htmlinclude "
+diff --git a/src/mxUtils.cpp b/src/mxUtils.cpp
+index e748adc..e07fcb8 100644
+--- a/src/mxUtils.cpp
++++ b/src/mxUtils.cpp
+@@ -563,7 +563,7 @@ wxString mxUT::ToHtml(wxString text, bool full) {
+ 	text.Replace(_T(">"),_T("&gt;"));
+ 	text.Replace("\n",_T("<BR>"));
+ 	if (full) {
+-		wxChar doce[]=" ";
++		wxChar doce[]=wxS(" ");
+ 		doce[0]=12;
+ 		text.Replace(doce,_T("<BR>"));
+ 		text.Replace(" ",_T("&nbsp;"));
+-- 
+2.16.2.windows.1
+

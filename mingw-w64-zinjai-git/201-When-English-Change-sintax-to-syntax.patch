@@ -1,0 +1,41 @@
+From 855279cbd71c28ebb9f21edb8814d5620cd9ddf6 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Fri, 16 Mar 2018 11:55:56 -0400
+Subject: [PATCH 07/22] When English Change sintax to syntax
+
+---
+ lang/english.pre | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lang/english.pre b/lang/english.pre
+index 446210f..405b1f9 100644
+--- a/lang/english.pre
++++ b/lang/english.pre
+@@ -2615,7 +2615,7 @@ Add cpp extension if it is omitted on saving
+ PREFERENCES_TOOLCHAIN
+ Toolchain
+ PREFERENCES_STYLE_SINTAX_HIGHLIGHT
+-Sintax highlighting
++Syntax highlighting
+ PREFERENCES_STYLE_DEFINE_COLOURS
+ Define colours...
+ PREFERENCES_STYLE_LINE_WRAP
+@@ -2655,13 +2655,13 @@ General
+ PREFERENCES_ASSIST_2
+ Autocompletion
+ PREFERENCES_WRITING_INTELLIGENT_EDITING
+-Smart indention (requires sintax highlighting)
++Smart indention (requires syntax highlighting)
+ PREFERENCES_WRITING_AUTOCLOSE_BRACKETS
+ Close brackets when hitting Return
+ PREFERENCES_WRITING_AUTOCLOSE_STUFF
+ Always close brackets, parenthesis and quotations
+ PREFERENCES_WRITING_INDENT_ON_PASTE
+-Fix indentation on paste (requires sintax highlighting)
++Fix indentation on paste (requires syntax highlighting)
+ PREFERENCES_WRITING_CHECK_FOR_EMPTY_LAST_LINE
+ Ensure empty line precense at end of file
+ PREFERENCES_WRITING_SHOW_TOOLTIPS_FOR_VAR_TYPES
+-- 
+2.16.2.windows.1
+

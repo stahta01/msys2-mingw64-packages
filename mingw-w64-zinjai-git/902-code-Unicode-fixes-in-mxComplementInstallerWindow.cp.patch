@@ -1,0 +1,42 @@
+From 690deea8b37f97c5ad81d870f7d484d34ada3599 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sun, 18 Mar 2018 18:45:42 -0400
+Subject: [PATCH 14/22] Unicode fix mxComplementInstallerWindow.cpp
+
+Replace strcpy with wxStrcpy
+And, use wxChar and wxS().
+---
+ src/mxComplementInstallerWindow.cpp | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/mxComplementInstallerWindow.cpp b/src/mxComplementInstallerWindow.cpp
+index 97d27c3..f7df9b9 100644
+--- a/src/mxComplementInstallerWindow.cpp
++++ b/src/mxComplementInstallerWindow.cpp
+@@ -162,10 +162,10 @@ void mxComplementInstallerWindow::Install(wxString fname) {
+ 	wxString command = mxUT::Quotize(exe)+" "+args;
+ #ifdef __WIN32__
+ 	if (!writable) {
+-		char *cexe= new char[exe.Len()+1];
+-		strcpy(cexe,exe.c_str());
+-		char *cargs=new char[caller.Len()+1];
+-		strcpy(cargs,args.c_str());
++		wxChar *cexe= new wxChar[exe.Len()+1];
++		wxStrcpy(cexe,exe.wx_str());
++		wxChar *cargs=new wxChar[caller.Len()+1];
++		wxStrcpy(cargs,args.wx_str());
+ 			
+ 		SHELLEXECUTEINFO sinfo;
+ 		memset(&sinfo, 0, sizeof(SHELLEXECUTEINFO));
+@@ -174,7 +174,7 @@ void mxComplementInstallerWindow::Install(wxString fname) {
+ 		sinfo.hwnd         = nullptr;
+ 		sinfo.lpFile       = cexe;
+ 		sinfo.lpParameters = cargs;
+-		sinfo.lpVerb       = "runas"; // <<-- this is what makes a UAC prompt show up
++		sinfo.lpVerb       = wxS("runas"); // <<-- this is what makes a UAC prompt show up
+ 		sinfo.nShow        = SW_NORMAL;
+ 		// The only way to get a UAC prompt to show up
+ 		// is by calling ShellExecuteEx() with the correct
+-- 
+2.16.2.windows.1
+

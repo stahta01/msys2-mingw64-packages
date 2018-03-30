@@ -1,0 +1,25 @@
+From c8e4eebf489fa908e6fa3fdbbe04fed542f96ead Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sat, 17 Mar 2018 17:20:48 -0400
+Subject: [PATCH 02/22] Replace "wxSizer::Remove" with "wxSizer::Detach"
+
+---
+ src/mxMiniMapPanel.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/mxMiniMapPanel.cpp b/src/mxMiniMapPanel.cpp
+index 4ff60af..3d7f9d4 100644
+--- a/src/mxMiniMapPanel.cpp
++++ b/src/mxMiniMapPanel.cpp
+@@ -10,7 +10,7 @@ mxMiniMapPanel::mxMiniMapPanel(wxWindow *parent)
+ }
+ void mxMiniMapPanel::SetCurrentSource (mxSource * src)  {
+ 	if (m_current_map) {
+-		m_sizer->Remove(m_current_map);
++		m_sizer->Detach(m_current_map);
+ 		m_current_map->Hide();
+ 	}
+ 	if (src) {
+-- 
+2.16.2.windows.1
+

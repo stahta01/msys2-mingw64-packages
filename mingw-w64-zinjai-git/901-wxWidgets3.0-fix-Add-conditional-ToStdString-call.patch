@@ -1,0 +1,34 @@
+From d40efcf4a7161b6b3b1da86c68a8b44c19947a07 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Tue, 20 Mar 2018 00:43:59 -0400
+Subject: [PATCH 17/22] wxWidgets3.0: Add conditional ToStdString() call
+
+---
+ src_extras/complement/ComplementArchive.cpp | 8 ++++++++
+ 1 files changed, 8 insertions(+)
+
+diff --git a/src_extras/complement/ComplementArchive.cpp b/src_extras/complement/ComplementArchive.cpp
+index 3871c9a..9186268 100644
+--- a/src_extras/complement/ComplementArchive.cpp
++++ b/src_extras/complement/ComplementArchive.cpp
+@@ -151,9 +151,17 @@ bool CreateZip(bool (*callback)(wxString message, int progress), const wxString
+ }
+ 
+ bool SetBins(const wxArrayString & files, const wxString aTargetDir) {
++#if wxCHECK_VERSION(3, 0, 0)
++	string target=aTargetDir.ToStdString();
++#else
+ 	string target=aTargetDir.c_str();
++#endif
+ 	for(unsigned int i=0;i<files.GetCount();i++)
++#if wxCHECK_VERSION(3, 0, 0)
++		system((string("chmod a+x ")+target+files[i].ToStdString()).c_str());
++#else
+ 		system((string("chmod a+x ")+target+files[i].c_str()).c_str());
++#endif
+ 	return true;
+ }
+ 
+-- 
+2.16.2.windows.1
+

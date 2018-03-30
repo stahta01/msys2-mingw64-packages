@@ -1,0 +1,184 @@
+From 51fe16a824c3ebd4a9ea788a5a14108b25df5593 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Fri, 16 Mar 2018 11:52:36 -0400
+Subject: [PATCH] Add several Makefile.msys files
+
+---
+ lang/tools/mxLangTool/Makefile.msys | 31 +++++++++++++++++++++++++++++++
+ parser/Makefile.msys                | 23 +++++++++++++++++++++++
+ src/Makefile.msys                   | 34 ++++++++++++++++++++++++++++++++++
+ src_extras/Makefile.msys            | 33 +++++++++++++++++++++++++++++++++
+ src_extras/img_viewer/Makefile.msys | 19 +++++++++++++++++++
+ 5 files changed, 172 insertions(+)
+ create mode 100644 lang/tools/mxLangTool/Makefile.msys
+ create mode 100644 parser/Makefile.msys
+ create mode 100644 src/Makefile.msys
+ create mode 100644 src_extras/Makefile.msys
+ create mode 100644 src_extras/img_viewer/Makefile.msys
+
+diff --git a/lang/tools/mxLangTool/Makefile.msys b/lang/tools/mxLangTool/Makefile.msys
+new file mode 100644
+index 0000000..176bf59
+--- /dev/null
++++ b/lang/tools/mxLangTool/Makefile.msys
+@@ -0,0 +1,30 @@
++GPP=g++ -fshow-column
++GCC=gcc
++FLAGS= -O2 `wx-config --version=3.0 --static --unicode --cppflags`
++LIBS= -s  `wx-config --version=3.0 --static --unicode --libs`
++OBJS_DIR=release-${ARCH}.w32
++BIN_DIR=../bin-${ARCH}
++OBJS=${OBJS_DIR}/Application.o ${OBJS_DIR}/mxWindow.o ${OBJS_DIR}/LangFile.o
++
++all: ${OBJS_DIR} ${BIN_DIR}/mxLangTool.exe
++
++clean:
++	rm -rf ${OBJS} ${BIN_DIR}/mxLangTool.exe
++
++${BIN_DIR}:
++	mkdir -p ${BIN_DIR}
++
++${BIN_DIR}/mxLangTool.exe: ${BIN_DIR} ${OBJS}
++	${GPP} ${OBJS} ${LIBS} -o $@
++
++${OBJS_DIR}:
++	mkdir -p ${OBJS_DIR}
++
++${OBJS_DIR}/Application.o: Application.cpp Application.h mxWindow.h
++	${GPP} ${FLAGS} -c Application.cpp -o $@
++
++${OBJS_DIR}/mxWindow.o: mxWindow.cpp mxWindow.h
++	${GPP} ${FLAGS} -c mxWindow.cpp -o $@
++
++${OBJS_DIR}/LangFile.o: LangFile.cpp LangFile.h
++	${GPP} ${FLAGS} -c LangFile.cpp -o $@
+diff --git a/parser/Makefile.msys b/parser/Makefile.msys
+new file mode 100644
+index 0000000..b507504
+--- /dev/null
++++ b/parser/Makefile.msys
+@@ -0,0 +1,23 @@
++GCC=gcc
++OPTS= -g -D_WINDOWS -D_FORTIFY_SOURCE=2 -D__USE_MINGW_ANSI_STDIO=1 -Wall -Wundef -O1 -DZASKAR -Dpanic=printf -Dckfree=free -Dckalloc=malloc -Dckrealloc=realloc -DHAVE_CONFIG_H -Ihyper -Icommon -Imisc -Icpp/cpplib -I.
++OBJS_DIR=../temp/parser/release-${ARCH}.msys
++BIN_DIR=../bin-${ARCH}
++LDFLAGS=
++
++all: ${OBJS_DIR} ${BIN_DIR}/zinjai-cbrowser.exe
++
++include Makefile.common
++
++${OBJS_DIR}:
++	mkdir -p ${OBJS_DIR}
++
++${BIN_DIR}:
++	mkdir -p ${BIN_DIR}
++
++${BIN_DIR}/zinjai-cbrowser.exe: ${BIN_DIR} ${OBJS}
++	${GCC} ${OBJS} ${LDFLAGS} -o $@
++
++
++clean:
++	rm -f ${BIN_DIR}/zinjai-cbrowser.exe
++	rm -f ${OBJS}
+diff --git a/src/Makefile.msys b/src/Makefile.msys
+new file mode 100644
+index 0000000..0b06147
+--- /dev/null
++++ b/src/Makefile.msys
+@@ -0,0 +1,33 @@
++GPP=g++
++STRIP=strip
++OBJCOPY=objcopy
++# When using g++.exe (Rev1, Built by MSYS2 project) 7.3.0
++#   -O2 and -O3 resulted in a exe that seg faulted
++CXXFLAGS=-Wall -O1 -g `wx-config --version=3.0 --static --unicode --cppflags`
++LIBS=`wx-config --version=3.0 --static --unicode --libs std,aui,stc`
++OBJS_DIR=../temp/zinjai/release-${ARCH}.msys
++BIN_DIR=../bin-${ARCH}
++
++
++all: ${BIN_DIR} ${BIN_DIR}/zinjai.exe
++
++include Makefile.common
++
++clean:
++	rm -rf ${OBJS} ${BIN_DIR}/zinjai.exe ${BIN_DIR}/zinjai-w32.dbg ${OBJS_DIR}/icon.o
++
++
++${OBJS_DIR}/icon.o: zinjai.rc manifest.xml
++	windres -i zinjai.rc -o $@
++
++${BIN_DIR}/zinjai.exe: ${OBJS_DIR} ${OBJS} ${OBJS_DIR}/icon.o
++	${GPP} ${OBJS} ${LIBS}  ${OBJS_DIR}/icon.o -o $@
++	${OBJCOPY} --only-keep-debug ${BIN_DIR}/zinjai.exe ${BIN_DIR}/zinjai-w32.dbg
++	${STRIP} ${BIN_DIR}/zinjai.exe
++	${OBJCOPY} --add-gnu-debuglink=${BIN_DIR}/zinjai-w32.dbg ${BIN_DIR}/zinjai.exe
++
++${OBJS_DIR}:
++	mkdir -p ${OBJS_DIR}
++
++${BIN_DIR}:
++	mkdir -p ${BIN_DIR}
+diff --git a/src_extras/Makefile.msys b/src_extras/Makefile.msys
+new file mode 100644
+index 0000000..897268b
+--- /dev/null
++++ b/src_extras/Makefile.msys
+@@ -0,0 +1,28 @@
++GPP=g++
++OBJS_DIR=release-${ARCH}.w32
++BIN_DIR=../bin-${ARCH}
++
++all: ${BIN_DIR} ${BIN_DIR}/zinjai-updatem.exe ${BIN_DIR}/zinjai-runner.exe ${BIN_DIR}/zinjai-shellexecute.exe
++	$(MAKE) -f Makefile.msys -C img_viewer
++
++clean:
++	rm -f ${BIN_DIR}/zinjai-updatem.exe ${BIN_DIR}/zinjai-runner.exe ${BIN_DIR}/zinjai-shellexecute.exe
++	$(MAKE) -f Makefile.msys -C img_viewer clean
++
++${BIN_DIR}:
++	mkdir -p ${BIN_DIR}
++
++${BIN_DIR}/zinjai-runner.exe: ${OBJS_DIR}/runner.o
++	${GPP} ${OBJS_DIR}/runner.o -o $@
++
++${BIN_DIR}/zinjai-shellexecute.exe: shellexecute.cpp
++	${GPP} -s -static-libgcc -static-libstdc++ -mwindows shellexecute.cpp -o $@
++
++${BIN_DIR}/zinjai-updatem.exe: updatem.cpp zockets.cpp zockets.h
++	${GPP} ${FLAGS} -mwindows updatem.cpp zockets.cpp -lwsock32 xmlres.o -o $@
++
++${OBJS_DIR}:
++	mkdir -p ${OBJS_DIR}
++
++${OBJS_DIR}/runner.o: runner.cpp ${OBJS_DIR}
++	${GPP} -O2 -c runner.cpp -o $@
+diff --git a/src_extras/img_viewer/Makefile.msys b/src_extras/img_viewer/Makefile.msys
+new file mode 100644
+index 0000000..0f5d977
+--- /dev/null
++++ b/src_extras/img_viewer/Makefile.msys
+@@ -0,0 +1,19 @@
++GPP=g++
++CXXFLAGS=-O2 `wx-config --version=3.0 --static --unicode --cppflags`
++LDFLAGS=-s `wx-config --version=3.0 --static --unicode --libs std,stc`
++OBJS_DIR=../../temp/img_viewer/release-${ARCH}.msys
++BIN_DIR=../../bin-${ARCH}
++
++all: ${BIN_DIR}/zinjai-img_viewer.exe
++
++include Makefile.common
++
++clean:
++	rm -rf ${OBJS} ${BIN_DIR}/zinjai-img_viewer.exe
++	rm -f core
++
++${BIN_DIR}/zinjai-img_viewer.exe: ${OBJS_DIR} ${OBJS}
++	${GPP} ${OBJS} ${LDFLAGS} -o $@
++
++${OBJS_DIR}:
++	mkdir -p ${OBJS_DIR}
+-- 
+2.16.2.windows.1
+

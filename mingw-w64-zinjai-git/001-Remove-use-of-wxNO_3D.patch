@@ -1,0 +1,25 @@
+From 1a01befccf19ac0170bfb086b53d39f5d2b83568 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sat, 17 Mar 2018 15:36:49 -0400
+Subject: [PATCH 01/22] Remove use of wxNO_3D
+
+---
+ src/mxOSD.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/mxOSD.cpp b/src/mxOSD.cpp
+index 8285ec5..494263c 100644
+--- a/src/mxOSD.cpp
++++ b/src/mxOSD.cpp
+@@ -22,7 +22,7 @@ mxOSD *mxOSD::current_osd = nullptr;
+ 
+ mxOSD::mxOSD(wxWindow *aparent, wxString str, int time, bool corner, GenericAction *aon_cancel) 
+ 	: wxDialog( aparent?aparent:main_window,wxID_ANY,"",wxPoint(200,200),wxSize(400,100),
+-	            (aparent?wxFRAME_FLOAT_ON_PARENT:wxSTAY_ON_TOP)|wxNO_3D|wxNO_BORDER ),
++	            (aparent?wxFRAME_FLOAT_ON_PARENT:wxSTAY_ON_TOP)|wxNO_BORDER ),
+ 	  on_cancel(aon_cancel), timer(nullptr), parent(aparent)
+ {
+ 	cancel_button = on_cancel ? new wxButton(this,wxID_CANCEL,LANG(GENERAL_CANCEL_BUTTON,"Cancelar")) : nullptr;
+-- 
+2.16.2.windows.1
+

@@ -1,0 +1,51 @@
+From 91075ca4aaabaebf29222c093bc2ec3e821b86c3 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Tue, 20 Mar 2018 00:14:11 -0400
+Subject: [PATCH 12/22] wxWidgets3.0: Add GetEventHandler()
+
+---
+ src/mxCommandFinder.cpp | 2 +-
+ src/mxMainWindow.cpp    | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/mxCommandFinder.cpp b/src/mxCommandFinder.cpp
+index a16bd2a..62cc235 100644
+--- a/src/mxCommandFinder.cpp
++++ b/src/mxCommandFinder.cpp
+@@ -118,7 +118,7 @@ void mxCommandFinderList::Select ( ) {
+ 	if (sel>=0&&sel<int(list->GetCount())) {
+ 		Hide(); GetParent()->Close();
+ 		wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED,ids[sel]);
+-		main_window->ProcessEvent(evt);
++		main_window->GetEventHandler()->ProcessEvent(evt);
+ 	}
+ }
+ 
+diff --git a/src/mxMainWindow.cpp b/src/mxMainWindow.cpp
+index e689d1d..c4a12f1 100644
+--- a/src/mxMainWindow.cpp
++++ b/src/mxMainWindow.cpp
+@@ -1434,7 +1434,7 @@ mxMainWindow::~mxMainWindow() {
+ void mxMainWindow::OnEdit (wxCommandEvent &event) {
+ 	_record_this_action_in_macro(event.GetId());
+ 	IF_THERE_IS_SOURCE {
+-		CURRENT_SOURCE->ProcessEvent(event);
++		CURRENT_SOURCE->GetEventHandler()->ProcessEvent(event);
+ 		CURRENT_SOURCE->SetFocus();
+ 	}
+ }
+@@ -1446,9 +1446,9 @@ void mxMainWindow::OnEditNeedFocus (wxCommandEvent &event) {
+ 	if (focus && (focus==inspection_ctrl || focus->GetParent()==inspection_ctrl->GetCurrentInspectionGrid())) {
+ 		inspection_ctrl->OnRedirectedEditEvent(event);
+ 	} else if (focus && focus->IsKindOf(menu_data->toolbar_find_text->GetClassInfo())) {
+-		if (event.GetId()<wxID_HIGHEST) focus->ProcessEvent(event); // redirect copy/past/cut, not others (duplicate lines, toggle mark, etc)
++		if (event.GetId()<wxID_HIGHEST) focus->GetEventHandler()->ProcessEvent(event); // redirect copy/past/cut, not others (duplicate lines, toggle mark, etc)
+ 	} else IF_THERE_IS_SOURCE {
+-		CURRENT_SOURCE->ProcessEvent(event);
++		CURRENT_SOURCE->GetEventHandler()->ProcessEvent(event);
+ 	}
+ }
+ 
+-- 
+2.16.2.windows.1
+

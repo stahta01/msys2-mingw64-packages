@@ -1,0 +1,91 @@
+From df378c9145edf16616ec4d7b31fc7547ef4ea6d7 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sat, 24 Mar 2018 07:23:44 -0400
+Subject: [PATCH 29/31] msys2: Replace use of GetZinjaiBinDir with "zinjai-"
+ prefix
+
+---
+ src/CustomTools.cpp      | 4 ++--
+ src/Parser.cpp           | 9 ++-------
+ src/mxUpdatesChecker.cpp | 2 +-
+ src/mxUtils.cpp          | 4 ++--
+ 4 files changed, 7 insertions(+), 12 deletions(-)
+
+diff --git a/src/CustomTools.cpp b/src/CustomTools.cpp
+index 2eff4aa..a65f22d 100644
+--- a/src/CustomTools.cpp
++++ b/src/CustomTools.cpp
+@@ -132,13 +132,13 @@ mxCustomToolProcess::mxCustomToolProcess(const OneCustomTool &_tool) : tool(_too
+ 		cmd.Replace("${BROWSER}",config->Files.browser_command);
+ 	else {
+ #ifdef __WIN32__
+-		mxUT::ParameterReplace(cmd,"${BROWSER}",config->GetZinjaiBinPath("shellexecute.exe"));
++		mxUT::ParameterReplace(cmd,"${BROWSER}","zinjai-shellexecute.exe");
+ #else
+ 		cmd.Replace("${BROWSER}","xdg-open");
+ #endif
+ 	}
+ #ifdef __WIN32__
+-	mxUT::ParameterReplace(cmd,"${OPEN}",config->GetZinjaiBinPath("shellexecute.exe"));
++	mxUT::ParameterReplace(cmd,"${OPEN}","zinjai-shellexecute.exe");
+ #else
+ 	cmd.Replace("${OPEN}","xdg-open");
+ #endif
+diff --git a/src/Parser.cpp b/src/Parser.cpp
+index 43b96de..21a2126 100644
+--- a/src/Parser.cpp
++++ b/src/Parser.cpp
+@@ -336,13 +336,8 @@ long Parser::ParseNextFileStart(wxFileName filename, wxString HashName, bool hid
+ 	PD_REGISTER_FILE(process->file, HashName,filename.GetModificationTime());
+ 	process->file->hide_symbols=hide_symbols;
+ 	static wxString parser_command = "";
+-	if (parser_command.IsEmpty()) parser_command = DIR_PLUS_FILE(config->GetZinjaiBinDir(),
+-#ifdef __WIN32__
+-		"cbrowser.exe"
+-#else
+-		"cbrowser.bin"
+-#endif
+-		);
++	if (parser_command.IsEmpty()) parser_command = "zinjai-cbrowser.exe";
++
+ 	return wxExecute(wxString(parser_command)<<" \""<<filename.GetFullPath()<<"\"",wxEXEC_ASYNC,process);
+ }
+ 
+diff --git a/src/mxUpdatesChecker.cpp b/src/mxUpdatesChecker.cpp
+index 10f1fca..b0ad91f 100644
+--- a/src/mxUpdatesChecker.cpp
++++ b/src/mxUpdatesChecker.cpp
+@@ -71,7 +71,7 @@ void mxUpdatesChecker::CheckNow() {
+ 	
+ 	text->SetLabel(LANG(UPDATE_CONSULTING_WEB,"Consultando web..."));
+ 
+-	wxString command  = config->GetZinjaiBinPath(_if_win32("updatem.exe","updatem.bin"));
++	wxString command  = "zinjai-updatem.exe";
+ 	command<<" --version "<<VERSION<<" ";
+ #ifdef __WIN32__
+ 	command<<"--postfix windows ";
+diff --git a/src/mxUtils.cpp b/src/mxUtils.cpp
+index e07fcb8..25f9ef3 100644
+--- a/src/mxUtils.cpp
++++ b/src/mxUtils.cpp
+@@ -1241,7 +1241,7 @@ wxString mxUT::GetCommandForRunningInTerminal (const wxString &title, const wxSt
+ 
+ int mxUT::LaunchImageViewer (const wxString &window_title, const wxString &image_file) {
+ 	wxString command = config->Files.img_viewer;
+-	if (command.IsEmpty()) command = mxUT::Quotize( config->GetZinjaiBinPath(_if_win32("img_viewer.exe","img_viewer.bin")) );
++	if (command.IsEmpty()) command = mxUT::Quotize( "zinjai-img_viewer.exe" );
+ 	command<<" "<<Quotize(image_file)<<" \""<<window_title<<"\"";
+ 	ZLINF2("Utils","LaunchImageViewer command: "<<command);
+ 	int retval = wxExecute(command);
+@@ -1264,7 +1264,7 @@ wxString mxUT::GetFileTypeDescription(wxString file_path) {
+ }
+ 
+ bool mxUT::ShellExecute (const wxString & path, const wxString &workdir) {
+-	wxString command = _if_win32( config->GetZinjaiBinPath("shellexecute.exe"), "xdg-open" );
++	wxString command = "zinjai-shellexecute.exe";
+ 	command<<" "<<Quotize(path);
+ 	RaiiWorkDirChanger wkcd_guard(workdir.IsEmpty()?".":workdir);
+ 	return wxExecute(command);
+-- 
+2.16.2.windows.1
+

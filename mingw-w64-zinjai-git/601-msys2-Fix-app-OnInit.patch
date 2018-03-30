@@ -1,0 +1,26 @@
+From f7a6f4c670336dcd6a13e2f97d9f152bbad4aa68 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Fri, 23 Mar 2018 09:37:58 -0400
+Subject: [PATCH] msys2: Fix app OnInit
+
+---
+ src/mxApplication.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/mxApplication.cpp b/src/mxApplication.cpp
+index 658b474..4435186 100644
+--- a/src/mxApplication.cpp
++++ b/src/mxApplication.cpp
+@@ -109,6 +109,9 @@ bool mxApplication::OnInit() {
+ 		} else if ( ( flag = wxFileName::FileExists(DIR_PLUS_FILE(zpath,"../zinjai.dir")) ) ) {
+ 			zpath = DIR_PLUS_FILE(zpath,"../");
+ 			wxSetWorkingDirectory(zpath);
++		} else if ( ( flag = wxFileName::FileExists(DIR_PLUS_FILE(zpath,"../share/zinjai/zinjai.dir")) ) )  {
++			zpath = DIR_PLUS_FILE(zpath,"../share/zinjai");
++			wxSetWorkingDirectory(zpath);
+ #ifdef __APPLE__
+ 		} else if ( ( flag = wxFileName::FileExists(DIR_PLUS_FILE(zpath,"../Resources/zinjai.dir")) ) )  {
+ 			zpath = DIR_PLUS_FILE(zpath,"../Resources");
+-- 
+2.16.2.windows.1
+

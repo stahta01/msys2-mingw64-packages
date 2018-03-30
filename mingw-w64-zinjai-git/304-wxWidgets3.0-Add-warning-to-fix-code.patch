@@ -1,0 +1,28 @@
+From 334b6c04462cf4b16dc55e53834a689408c7e28c Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Tue, 20 Mar 2018 06:02:51 -0400
+Subject: [PATCH 20/22] ** wxWidgets3.0: Add warning to fix code
+
+---
+ src/MenusAndToolsConfig.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/MenusAndToolsConfig.h b/src/MenusAndToolsConfig.h
+index 2922b0a..7c6747f 100644
+--- a/src/MenusAndToolsConfig.h
++++ b/src/MenusAndToolsConfig.h
+@@ -234,7 +234,11 @@ public:
+ 			else if (right) s<<"R"<<row; 
+ 			else if (top) s<<"T"<<row;
+ 			else s<<"F";
++#if wxCHECK_VERSION(3, 0, 0)
++#warning TODO: Add wxWidgets 3.0 code here
++#else
+ 			if (!visible) s[0]+=32;
++#endif
+ 			return s;
+ 		}
+ 	};
+-- 
+2.16.2.windows.1
+

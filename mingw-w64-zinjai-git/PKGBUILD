@@ -1,0 +1,184 @@
+# Maintainer: Tim S <stahta01@gmail.com>
+
+# Packages that are assumed to be installed when building this package.
+#  When building 32 bit
+#   pacman -S --needed --asdeps mingw-w64-i686-toolchain
+#  When building 64 bit
+#   pacman -S --needed --asdeps mingw-w64-x86_64-toolchain
+
+_realname=zinjai
+pkgbase=mingw-w64-${_realname}-git
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git")
+pkgver=2018
+pkgrel=1
+pkgdesc="lightweight Cross-platform IDE for programming with C/C++ (mingw-w64)"
+arch=('any')
+url='http://zinjai.sourceforge.net/'
+license=('GPL2')
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-gcc-libs"
+  "${MINGW_PACKAGE_PREFIX}-libpng"
+  "${MINGW_PACKAGE_PREFIX}-zlib"
+  "file"
+)
+makedepends=("git" "make" "${MINGW_PACKAGE_PREFIX}-wxWidgets")
+optdepends=(
+  "${MINGW_PACKAGE_PREFIX}-graphviz: for graphviz support"
+  "${MINGW_PACKAGE_PREFIX}-diffutils: for diff support"
+  "${MINGW_PACKAGE_PREFIX}-cppcheck: for cppcheck support"
+  "${MINGW_PACKAGE_PREFIX}-doxygen: for doxygen support"
+  "${MINGW_PACKAGE_PREFIX}-gcc: for gcc support"
+)
+source=(
+#  ${_realname}::git+'https://github.com/stahta01/zinjai-ide.git'
+#  ${_realname}::git+'git://git.code.sf.net/p/zinjai/code'
+  ${_realname}::git+'https://git.code.sf.net/p/zinjai/code'
+#  ${_realname}::git+'http://git.code.sf.net/p/zinjai/code'
+  001-Remove-use-of-wxNO_3D.patch
+  002-Replace-wxSizer-Remove-with-wxSizer-Detach.patch
+  003-Replace-wxSTRING_MAXLEN-with-wxString-npos.patch
+  004-Add-const-to-fix-wxWidgets-3.0-compiler-error.patch
+  005-Replace-wxString-Index-with-wxString-Find-to-fix-wx3.patch
+  007-Unicode-Change-c_str-to-wx_str.patch
+  051-Add-include-of-stdlib.h.patch
+  052-Add-function-externs.patch
+  053-Fix-function-name-typo.patch
+  054-add-std-includes.patch
+  201-When-English-Change-sintax-to-syntax.patch
+  202-English-spelling-corrections-in-welcome-english.html.patch
+  301-code-Use-wxString-method-Lower.patch
+  302-wxWidgets3.0-fix-Add-conditional-ToStdString-call.patch
+  303-wxWidgets3.0-fix-Add-GetEventHandler.patch
+  304-wxWidgets3.0-Add-warning-to-fix-code.patch
+  305-code-Add-IsEmpty-to-fix-wxWidgets-3.0.patch
+  401-code-Unicode-fix-using-wxChar-to-declare-array.patch
+  403-code-Add-wxChar-casts-to-fix-wxWidgets-3.0-compile-e.patch
+  404-Unicode-Add-wxS.patch
+  501-Edit-Makefile-to-build-using-MSys2-Makefiles.patch
+  502-Add-several-Makefile.msys-files.patch
+  503-msys2-Remove-mxComplementInstallerWindow.patch
+  601-msys2-Fix-app-OnInit.patch
+  602-msys2-default-toolchain.patch
+  603-Add-toolchains-gcc-msys2.patch
+  604-msys2-ConfigManager-LoadDefaults.patch
+  605-msys2-Replace-use-of-GetZinjaiBinDir-with-zinjai-pre.patch
+  607-msys2-ldd_cmd-ldd.patch
+  610-msys2-Remove-code-using-mxComplementInstallerWindow.patch
+)
+#000-049 simple and safe wxWidgets 3.0 and Unicode fixes
+#050-079 Compiler error fixes
+#080-099 Compiler warning reductions
+#100-199 Language updates
+#200-299 English updates
+#300-399 Possibly unsafe wxWidgets 3.0 fixes
+#400-499 Possibly unsafe wxWidgets 3.0 Unicode fixes
+#500-599 MSys2 build system changes
+#600-699 MSys2 code changes
+#700-799 wxWidgets 3.0 assertion fixes
+#990-999 complement patches that are not being used under msys2
+sha256sums=('SKIP'
+            '82a9cfd5982a863ada93fe40fa20cb3ab850df23306d8c5bb7a7110a50c9904a'
+            '10f3cbb77a8b6f4ef78a768caa3d72ae80d1a8af460cc3d09dc877fb09240a03'
+            '44636016ad0742edda587196ab2554ca706dcd0dbaf1e98b6c8e2759730b429b'
+            'c4479144151e2145c6818c4ab5ac8abee94bd93d333e60c72ea63ff961566609'
+            '310986ca5fe9f23b34a924888a3c3b4e2a4181d833fb0bc0bdf2d644d4320b30'
+            'e61988bc5344e38159b7d1d26761145ee59441e4669015591fcca2db4e5e852b'
+            '9189c1ea74abb51ae0b5445456b2ab2b88109246eed0d493dd99ccc81ead1705'
+            '4b733091f8cd5ac1bdb119aab657d1f3154b2e9c3172f41fe62d0ab595bd6cf9'
+            'dee675401c035b2330629bb7cb87afc090aedac47f05ef1692d5bb8aca57d859'
+            '83c9686559cc5a454450c8f39cf648a5cde2a1aa9d57821a89da85527fe356d3'
+            '72422b2aa59a9528ae462d1e9f1b5e10d008771c4556729cee85caaa49dfb157'
+            'a24aa8fd36226b8c440272bd56bc8d8646001f8f0e5ffa5cb02267c12fd37a99'
+            '827e6a88ab84e033a3c9443b7bb694f3e29ec9c3d6376fe25478a0ddc8fc36a9'
+            'd17ab6a65029e91841e745010e295934b6d5600af78af897e05519a8b9cb0bcc'
+            'b00231deb7563d08aa5e64350924c99eb895219e87d7e4fbe4f86a5e704e7160'
+            'aefe412b8a4b845fd21754546ac742ee951792f48043866ab09d5198e45f9240'
+            '2313fbfc7a33deea7f92436e861c97d7127a6efb1b9c6ad57cc3178f7c3cc180'
+            'a6a3de226b6df00dad1dd614aa96dc4d9c896c23f8183028b6f167c28eef0a2c'
+            'fb43f96e9be6561c61d4aa647070d4b0365cfa114d618374e8b0e26e128fc791'
+            'bcbd62964528d50cfc63c5ca26a0270d5132de93c7a43ae09233721939e737c2'
+            '758a1092b2e0c9eb0b3d74a030d62c24df4a66c5195b537f913f782f00578fba'
+            '7a158e67ed56abe3b71a23a8efce5bbb41c3642a8528be2a1958e6386dc7b44c'
+            '289ed0c6afba0e39bc6c4b4d323748619557880623493c4e224cc99c57c1376c'
+            '1a961ac4b5a0f58d4d951364d18bacef4f9584102c4531b44ef90940a039d2c5'
+            '795a922eb77a1b9c5fef350649e475f83df9289409a8cbb7f8828b0b5e02d06f'
+            '4e6b33a6e86a254fb7b66915ed8e1ceffac7febef8314082232c3dfb8a814891'
+            '7bd90cf5fb3c2badb4e4c2a0a579e7d2e7d8e5a350ee397ad77709d037d47fc8'
+            'aa6e3727b5887cd47af95e52d2ab7b45689c38bc924ac8625c685124c30012fa'
+            'b2ad705dc928adbca609025638c5581c4361bbecd535b3e73b0c0ea319b7cfc7'
+            '2f7509d0e5444992beec16ce2fed04e9fdbb541395fb0dce2f3d99f1342f1a6e')
+
+prepare() {
+  cd $srcdir/${_realname}
+
+  GIT_AM="git am --committer-date-is-author-date"
+
+  ${GIT_AM} ${srcdir}/001-Remove-use-of-wxNO_3D.patch
+  ${GIT_AM} ${srcdir}/002-Replace-wxSizer-Remove-with-wxSizer-Detach.patch
+  ${GIT_AM} ${srcdir}/003-Replace-wxSTRING_MAXLEN-with-wxString-npos.patch
+  ${GIT_AM} ${srcdir}/004-Add-const-to-fix-wxWidgets-3.0-compiler-error.patch
+  ${GIT_AM} ${srcdir}/005-Replace-wxString-Index-with-wxString-Find-to-fix-wx3.patch
+  ${GIT_AM} ${srcdir}/007-Unicode-Change-c_str-to-wx_str.patch
+  ${GIT_AM} ${srcdir}/051-Add-include-of-stdlib.h.patch
+  ${GIT_AM} ${srcdir}/052-Add-function-externs.patch
+  ${GIT_AM} ${srcdir}/053-Fix-function-name-typo.patch
+  ${GIT_AM} ${srcdir}/054-add-std-includes.patch
+  ${GIT_AM} ${srcdir}/201-When-English-Change-sintax-to-syntax.patch
+  ${GIT_AM} ${srcdir}/202-English-spelling-corrections-in-welcome-english.html.patch
+  ${GIT_AM} ${srcdir}/301-code-Use-wxString-method-Lower.patch
+  ${GIT_AM} ${srcdir}/302-wxWidgets3.0-fix-Add-conditional-ToStdString-call.patch
+  ${GIT_AM} ${srcdir}/303-wxWidgets3.0-fix-Add-GetEventHandler.patch
+  ${GIT_AM} ${srcdir}/304-wxWidgets3.0-Add-warning-to-fix-code.patch
+  ${GIT_AM} ${srcdir}/305-code-Add-IsEmpty-to-fix-wxWidgets-3.0.patch
+  ${GIT_AM} ${srcdir}/401-code-Unicode-fix-using-wxChar-to-declare-array.patch
+#
+  ${GIT_AM} ${srcdir}/403-code-Add-wxChar-casts-to-fix-wxWidgets-3.0-compile-e.patch
+  ${GIT_AM} ${srcdir}/404-Unicode-Add-wxS.patch
+  ${GIT_AM} ${srcdir}/501-Edit-Makefile-to-build-using-MSys2-Makefiles.patch
+  ${GIT_AM} ${srcdir}/502-Add-several-Makefile.msys-files.patch
+  ${GIT_AM} ${srcdir}/503-msys2-Remove-mxComplementInstallerWindow.patch
+  ${GIT_AM} ${srcdir}/601-msys2-Fix-app-OnInit.patch
+  ${GIT_AM} ${srcdir}/602-msys2-default-toolchain.patch
+  ${GIT_AM} ${srcdir}/603-Add-toolchains-gcc-msys2.patch
+  ${GIT_AM} ${srcdir}/604-msys2-ConfigManager-LoadDefaults.patch
+  ${GIT_AM} ${srcdir}/605-msys2-Replace-use-of-GetZinjaiBinDir-with-zinjai-pre.patch
+  ${GIT_AM} ${srcdir}/607-msys2-ldd_cmd-ldd.patch
+  ${GIT_AM} ${srcdir}/610-msys2-Remove-code-using-mxComplementInstallerWindow.patch
+}
+
+build() {
+  cd "$srcdir"/${_realname}
+
+  ARCH=${CARCH} make msys-win32-clean
+  ARCH=${CARCH} make msys-win32
+}
+
+#check() {
+  #cd "$srcdir"/${_realname}
+  #make check
+#}
+
+package() {
+  cd "$srcdir"/${_realname}
+
+  mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
+  mkdir -p ${pkgdir}${MINGW_PREFIX}/share/${_realname}
+
+  cp bin-${CARCH}/zinjai.exe ${pkgdir}${MINGW_PREFIX}/bin/zinjai.exe
+  cp bin-${CARCH}/zinjai-*.exe ${pkgdir}${MINGW_PREFIX}/bin/
+
+  rm -f ${pkgdir}${MINGW_PREFIX}/bin/mxLangTool.exe
+
+  cp --recursive autocomp/    ${pkgdir}${MINGW_PREFIX}/share/${_realname}/autocomp/
+  cp --recursive colours/     ${pkgdir}${MINGW_PREFIX}/share/${_realname}/colours/
+  cp --recursive guihelp/     ${pkgdir}${MINGW_PREFIX}/share/${_realname}/guihelp/
+  cp --recursive imgs/        ${pkgdir}${MINGW_PREFIX}/share/${_realname}/imgs/
+  cp --recursive lang/        ${pkgdir}${MINGW_PREFIX}/share/${_realname}/lang/
+  cp --recursive samples/     ${pkgdir}${MINGW_PREFIX}/share/${_realname}/samples/
+  cp --recursive skins/       ${pkgdir}${MINGW_PREFIX}/share/${_realname}/skins/
+  cp --recursive templates/   ${pkgdir}${MINGW_PREFIX}/share/${_realname}/templates/
+  cp --recursive third/       ${pkgdir}${MINGW_PREFIX}/share/${_realname}/third/
+  cp --recursive toolchains/  ${pkgdir}${MINGW_PREFIX}/share/${_realname}/toolchains/
+
+  cp zinjai.dir ${pkgdir}${MINGW_PREFIX}/share/${_realname}/
+}

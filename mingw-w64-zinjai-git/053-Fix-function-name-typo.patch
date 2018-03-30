@@ -1,0 +1,25 @@
+From 7d8a4567f7c8fd70b4fc0073be0753fc3029da69 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Wed, 21 Mar 2018 16:04:06 -0400
+Subject: [PATCH] Fix function name typo
+
+---
+ parser/cpp/cparser.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/parser/cpp/cparser.c b/parser/cpp/cparser.c
+index 2ec8ffa..822bca0 100755
+--- a/parser/cpp/cparser.c
++++ b/parser/cpp/cparser.c
+@@ -6635,7 +6638,7 @@ extern int Put_symbol (int type, char *scope, char *sym_name, char *file, int st
+    }
+ #endif
+ 
+-   retval = put_symbol( type
++   retval = Put_symbol( type
+                       , scope
+                       , sym_name
+                       , file
+-- 
+2.16.2.windows.1
+

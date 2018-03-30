@@ -1,0 +1,26 @@
+From 7d8a4567f7c8fd70b4fc0073be0753fc3029da69 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Wed, 21 Mar 2018 16:04:06 -0400
+Subject: [PATCH] Add function externs
+
+---
+ parser/cpp/cparser.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/parser/cpp/cparser.c b/parser/cpp/cparser.c
+index 2ec8ffa..822bca0 100755
+--- a/parser/cpp/cparser.c
++++ b/parser/cpp/cparser.c
+@@ -102,6 +102,9 @@ MA 02111-1307, USA.
+ #define LongStringMySetLen( plstr, l ) (((plstr)->buf ? (plstr)->buf[l] = 0 : 0), (plstr)->len = (l))
+ 
+ extern FILE *cross_ref_fp;
++extern int f_ReadFile( int fd );
++extern int put_comment(char *classn,char *func,char *filename,
++   char *comment,int beg_line,int beg_char);
+ 
+ typedef struct sDeclaration sDeclaration_t, *Declaration_t;
+ typedef struct sDeclarator  sDeclarator_t , *Declarator_t ;
+-- 
+2.16.2.windows.1
+

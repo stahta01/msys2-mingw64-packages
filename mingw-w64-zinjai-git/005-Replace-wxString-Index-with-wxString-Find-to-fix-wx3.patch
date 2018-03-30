@@ -1,0 +1,47 @@
+From 63bd86d73b0689728186767eb3623097d4ca3b42 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sun, 18 Mar 2018 17:54:12 -0400
+Subject: [PATCH 05/22] Replace wxString::Index() with wxString::Find()
+
+---
+ src/LocalRefactory.cpp | 4 ++--
+ src/mxMainWindow.cpp   | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/LocalRefactory.cpp b/src/LocalRefactory.cpp
+index 12d59c0..a0c31ca 100644
+--- a/src/LocalRefactory.cpp
++++ b/src/LocalRefactory.cpp
+@@ -173,11 +173,11 @@ static void Surround (mxSource *src, int lmin, int lmax, wxString spre, wxString
+ 		src->Indent(lmax,lmax);
+ 	}
+ 	if (spre.Contains("#here#")) {
+-		int p = src->GetLineIndentPosition(lmin) + spre.Index("#here#");
++		int p = src->GetLineIndentPosition(lmin) + spre.Find("#here#");
+ 		src->SetTargetStart(p); src->SetTargetEnd(p+6); 
+ 		src->ReplaceTarget(""); src->SetSelection(p,p);
+ 	} else if (spos.Contains("#here#")) {
+-		int p = src->GetLineIndentPosition(lmax) + spos.Index("#here#");
++		int p = src->GetLineIndentPosition(lmax) + spos.Find("#here#");
+ 		src->SetTargetStart(p); src->SetTargetEnd(p+6); 
+ 		src->ReplaceTarget(""); src->SetSelection(p,p);
+ 	}
+diff --git a/src/mxMainWindow.cpp b/src/mxMainWindow.cpp
+index e6ab150..e689d1d 100644
+--- a/src/mxMainWindow.cpp
++++ b/src/mxMainWindow.cpp
+@@ -4437,9 +4437,9 @@ void mxMainWindow::SetCompilingStatus (const wxString &message, bool also_status
+ static void SuggestFix(mxSource *source, int pos, const wxString &error, const wxString &first_child) {
+ 	wxString message;
+ 	if (error.Contains(EN_COMPOUT_DID_YOU_MEAN)) {
+-		message = error.Mid(error.Index(EN_COMPOUT_DID_YOU_MEAN));
++		message = error.Mid(error.Find(EN_COMPOUT_DID_YOU_MEAN));
+ 	} else if (first_child.Contains(EN_COMPOUT_SUGGESTED_ALTERNATIVE)) {
+-		message = first_child.Mid(first_child.Index(EN_COMPOUT_SUGGESTED_ALTERNATIVE));
++		message = first_child.Mid(first_child.Find(EN_COMPOUT_SUGGESTED_ALTERNATIVE));
+ 	}
+ 	if (message.IsEmpty()) return;
+ 	wxString fix = message.AfterFirst('\'').BeforeFirst('\'');
+-- 
+2.16.2.windows.1
+

@@ -1,0 +1,30 @@
+From a24fc81a19f1c34a43cc6ece6a2cb508274c2695 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sat, 24 Mar 2018 05:37:56 -0400
+Subject: [PATCH] msys2 ConfigManager::LoadDefaults
+
+---
+ src/ConfigManager.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/ConfigManager.cpp b/src/ConfigManager.cpp
+index c463d63..8459e86 100644
+--- a/src/ConfigManager.cpp
++++ b/src/ConfigManager.cpp
+@@ -712,11 +712,11 @@ void ConfigManager::LoadDefaults(){
+ #ifdef __WIN32__
+ 	Files.toolchain=CURRENT_MINGW;
+ 	Files.debugger_command="gdb";
+-	Files.runner_command=DIR_PLUS_FILE("bin","runner.exe");
++	Files.runner_command="zinjai-runner.exe";
+ 	Files.terminal_command="";
+ 	Files.explorer_command="explorer";
+ 	Files.img_viewer="";
+-	Files.doxygen_command="c:\\archivos de programa\\doxygen\\bin\\doxygen.exe";
++	Files.doxygen_command="doxygen.exe";
+ 	Files.wxfb_command="";
+ 	Files.browser_command=""; // use "bin\\shellexecute.exe";
+ #elif defined(__APPLE__)
+-- 
+2.16.2.windows.1
+

@@ -1,0 +1,25 @@
+From 692241cdc52210d7130229de26f857e92331ee30 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Mon, 19 Mar 2018 20:04:46 -0400
+Subject: [PATCH 08/22] English spelling corrections in welcome/english.html
+
+---
+ imgs/welcome/english.html | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/imgs/welcome/english.html b/imgs/welcome/english.html
+index 84816cf..7f9a19a 100644
+--- a/imgs/welcome/english.html
++++ b/imgs/welcome/english.html
+@@ -11,7 +11,7 @@
+   <table width="100%"><tr>
+     <td valign="top"><A href="new_simple"><img src="new_file.png"></A><br></td>
+     <td><FONT size=+1><A href="new_simple"><B>Create simple program</B></A></FONT><BR>
+-      <FONT color="#555555">Start working quickly without neither creating projects nor definifing any setting. Just choose a template and start writting your code.</font></td>
++      <FONT color="#555555">Start working quickly without neither creating projects nor defining any setting. Just choose a template and start writing your code.</font></td>
+   </tr><tr>
+     <TD valign="top"><A href="new_project"><img src="new_project.png"></A><br></td>
+     <TD><FONT size=+1><A href="new_project"><B>Create new project</B></A></FONT><BR>
+-- 
+2.16.2.windows.1
+

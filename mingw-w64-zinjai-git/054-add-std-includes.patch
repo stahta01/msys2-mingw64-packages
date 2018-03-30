@@ -1,0 +1,26 @@
+From c7d5d9c14f51b433975b08d5fbded36529d66b9c Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Wed, 21 Mar 2018 19:26:39 -0400
+Subject: [PATCH] add std includes
+
+---
+ parser/misc/strs.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/parser/misc/strs.c b/parser/misc/strs.c
+index 901fd3b..fcf31c3 100755
+--- a/parser/misc/strs.c
++++ b/parser/misc/strs.c
+@@ -23,6 +23,9 @@ MA 02111-1307, USA.
+ 
+ */
+ 
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
+ //#include "tcl.h"
+ 
+ /* See sn.h for definitions of PAF_FILE -> PAF_SYMBOL_TYPE_MAX */
+-- 
+2.16.2.windows.1
+

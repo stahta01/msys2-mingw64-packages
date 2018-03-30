@@ -1,0 +1,32 @@
+From a131511f97b4369a879c812ab7a6a647295f51ed Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Fri, 23 Mar 2018 14:00:04 -0400
+Subject: [PATCH] msys2 default toolchain
+
+---
+ src/Toolchain.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/Toolchain.cpp b/src/Toolchain.cpp
+index a9f0484..b71d86e 100644
+--- a/src/Toolchain.cpp
++++ b/src/Toolchain.cpp
+@@ -109,11 +109,13 @@ Toolchain::Toolchain () {
+ //	desc="<null>";
+ 	type=TC_GCC;
+ #ifdef __WIN32__
++	c_linker_options="-static-libgcc";
++	cpp_linker_options="-static-libgcc -static-libstdc++";
++#endif
++#if 0 // defined(__WIN32__)
+ 	linker="mingw32-g++";
+ 	cpp_compiler="mingw32-g++";
+ 	c_compiler="mingw32-gcc";
+-	c_linker_options="-static-libgcc";
+-	cpp_linker_options="-static-libgcc -static-libstdc++";
+ 	base_path="mingw32-gcc6";
+ 	bin_path="mingw32-gcc6\\bin";
+ #else
+-- 
+2.16.2.windows.1
+

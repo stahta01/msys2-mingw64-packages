@@ -1,0 +1,25 @@
+From 0bcc2858958a013be2a9215a1061cada20b81ee0 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sun, 18 Mar 2018 17:25:13 -0400
+Subject: [PATCH 13/22] Unicode fix using wxChar to declare array
+
+---
+ src/DebugManager.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/DebugManager.cpp b/src/DebugManager.cpp
+index ede5ee8..9669cdd 100644
+--- a/src/DebugManager.cpp
++++ b/src/DebugManager.cpp
+@@ -1021,7 +1021,7 @@ void DebugManager::ReadGDBOutput() {
+ 	if (input->IsOk() && input->CanRead()) {
+ 		int n, watchdog=0;
+ 		do {
+-			static char buffer[256];
++			static wxChar buffer[256];
+ 			n = input->Read(buffer,255).LastRead();
+ 			m_gdb_buffer.Read(buffer,n);
+ 		} while (++watchdog!=1000 && n==255 && input->CanRead());
+-- 
+2.16.2.windows.1
+

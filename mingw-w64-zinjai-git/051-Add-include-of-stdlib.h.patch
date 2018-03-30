@@ -1,0 +1,50 @@
+From 606d82a0fcd6f056a82dd12ca724705151e87777 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Wed, 21 Mar 2018 13:50:03 -0400
+Subject: [PATCH] Add include of "stdlib.h"
+
+---
+ parser/common/srchtbl.c     | 1 +
+ parser/cpp/cparser.c        | 1 +
+ parser/cpp/cpplib/macread.c | 1 +
+ 3 files changed, 3 insertions(+)
+
+diff --git a/parser/common/srchtbl.c b/parser/common/srchtbl.c
+index 1ab457d..e7cb39f 100755
+--- a/parser/common/srchtbl.c
++++ b/parser/common/srchtbl.c
+@@ -24,6 +24,7 @@ MA 02111-1307, USA.
+ */
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <string.h>
+ 
+ #include "srchtbl.h"
+diff --git a/parser/cpp/cparser.c b/parser/cpp/cparser.c
+index da98787..2ec8ffa 100755
+--- a/parser/cpp/cparser.c
++++ b/parser/cpp/cparser.c
+@@ -38,6 +38,7 @@ MA 02111-1307, USA.
+ 
+ #include <stdio.h>
+ #include <string.h>
++#include <stdlib.h>
+ //#include <tcl.h>
+ #include <ctype.h>
+ 
+diff --git a/parser/cpp/cpplib/macread.c b/parser/cpp/cpplib/macread.c
+index 7cee438..b71e6ae 100755
+--- a/parser/cpp/cpplib/macread.c
++++ b/parser/cpp/cpplib/macread.c
+@@ -24,6 +24,7 @@ MA 02111-1307, USA.
+ */
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <string.h>
+ #include <ctype.h>
+ 
+-- 
+2.16.2.windows.1
+

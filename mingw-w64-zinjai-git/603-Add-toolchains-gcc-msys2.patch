@@ -1,0 +1,50 @@
+From b2a9093f3edc67668e1ca762469f9fcac6c9120a Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Fri, 23 Mar 2018 18:24:45 -0400
+Subject: [PATCH 2/2] Add toolchains/gcc-msys2
+
+---
+ src/Toolchain.h      |  2 +-
+ toolchains/gcc-msys2 | 17 +++++++++++++++++
+ 2 files changed, 18 insertions(+), 1 deletion(-)
+ create mode 100644 toolchains/gcc-msys2
+
+diff --git a/src/Toolchain.h b/src/Toolchain.h
+index 2b34ad9..3e57e32 100644
+--- a/src/Toolchain.h
++++ b/src/Toolchain.h
+@@ -4,7 +4,7 @@
+ #include <wx/arrstr.h>
+ 
+ #ifdef __WIN32__
+-#	define CURRENT_MINGW "mingw32-gcc6"
++#	define CURRENT_MINGW "gcc-msys2"
+ #endif
+ 
+ #define TOOLCHAIN_MAX_ARGS 5
+diff --git a/toolchains/gcc-msys2 b/toolchains/gcc-msys2
+new file mode 100644
+index 0000000..bd5183b
+--- /dev/null
++++ b/toolchains/gcc-msys2
+@@ -0,0 +1,17 @@
++type=gcc
++desc=gcc (gcc-msys2)
++c_compiler=gcc
++cpp_compiler=g++
++linker=g++
++c_compiling_options=${ARG1}
++cpp_compiling_options=${ARG2}
++c_linker_options=${ARG3}
++cpp_linker_options=${ARG4}
++dynamic_lib_linker=g++ -shared -o
++static_lib_linker=ar cr
++argument1=C compiling arguments=-fshow-column
++argument2=C++ compiling arguments=-fshow-column
++argument3=C linking arguments=-static-libgcc
++argument4=C++ linking arguments=-static-libstdc++ -static-libgcc
++base_path=
++bin_path=
+-- 
+2.16.2.windows.1
+

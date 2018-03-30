@@ -1,0 +1,25 @@
+From 894482da98437d27f7e791db839e8db01b1b358d Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sun, 18 Mar 2018 19:56:21 -0400
+Subject: [PATCH 06/22] Remove _T() that someone added by mistake
+
+---
+ src_extras/complement/mxCreateComplementWindow.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src_extras/complement/mxCreateComplementWindow.cpp b/src_extras/complement/mxCreateComplementWindow.cpp
+index 06963aa..b4734de 100644
+--- a/src_extras/complement/mxCreateComplementWindow.cpp
++++ b/src_extras/complement/mxCreateComplementWindow.cpp
+@@ -242,7 +242,7 @@ void mxCreateComplementWindow::Notify(const wxString &message) {
+ }
+ 
+ void mxCreateComplementWindow::OnButtonFolder (wxCommandEvent & evt) {
+-	wxDirDialog dlg(this,_T(spanish?"Directorio con archivos para el complemento:":"Directory with files to be included:"),folder->GetValue());
++	wxDirDialog dlg(this,spanish?"Directorio con archivos para el complemento:":"Directory with files to be included:",folder->GetValue());
+ 	if (wxID_OK==dlg.ShowModal()) SetFolder(dlg.GetPath());
+ }
+ 
+-- 
+2.16.2.windows.1
+

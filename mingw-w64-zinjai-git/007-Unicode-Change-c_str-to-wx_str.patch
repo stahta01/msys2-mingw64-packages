@@ -1,0 +1,25 @@
+From f796e339d6bddc6ce19eafade142c75b81904328 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Mon, 19 Mar 2018 23:50:01 -0400
+Subject: [PATCH 11/22] Unicode: Change c_str() to wx_str()
+
+---
+ src/mxSource.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/mxSource.cpp b/src/mxSource.cpp
+index 23c504d..c717d4d 100644
+--- a/src/mxSource.cpp
++++ b/src/mxSource.cpp
+@@ -2414,7 +2414,7 @@ void mxSource::ShowBaloon(wxString str, int p) {
+ 					while (j && ( str[j]!=' ' && str[j]!=',' && str[j]!='(' && str[j]!=')' ) ) j--;
+ 					if (j && !(j>2 && str[j]==' ' && str[j-1]==' ' && str[j-2]==' ' && str[j-3]=='\n') ) {
+ 						i=j;
+-						str = str.SubString(0,j)+"\n"+wxString(' ',spaces+3).c_str()+str.Mid(j+1);
++						str = str.SubString(0,j)+"\n"+wxString(' ',spaces+3).wx_str()+str.Mid(j+1);
+ 						++line_count;
+ 						l+=4;
+ 					}
+-- 
+2.16.2.windows.1
+

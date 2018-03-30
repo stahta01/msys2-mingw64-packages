@@ -1,0 +1,240 @@
+From b4abd41e9de49462dc33f70706166467da960b84 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sun, 18 Mar 2018 08:43:05 -0400
+Subject: [PATCH 15/22] Add (wxChar) casts to fix wxWidgets 3.0 compile
+ errors
+
+---
+ src/CodeHelper.cpp            |  4 ++--
+ src/CompilerErrorsManager.cpp |  4 ++--
+ src/DebugPatcher.cpp          |  6 +++---
+ src/GDBAnsBuffer.h            |  2 +-
+ src/Parser.cpp                |  4 ++--
+ src/mxDiffWindow.cpp          | 16 ++++++++--------
+ src/mxGdbAsmPanel.h           |  2 +-
+ src/mxMainWindow.cpp          |  2 +-
+ src/mxUtils.cpp               |  8 ++++----
+ src/parserData.h              |  4 ++--
+ 10 files changed, 26 insertions(+), 26 deletions(-)
+
+diff --git a/src/CodeHelper.cpp b/src/CodeHelper.cpp
+index d6c5ce2..27cb8b6 100644
+--- a/src/CodeHelper.cpp
++++ b/src/CodeHelper.cpp
+@@ -27,7 +27,7 @@ static bool ShouldAddToAutocompStart(const wxString &typed, int len, const wxStr
+ 	int l2=candidate.Len(); 
+ 	if (l2<len) return false;
+ 	for(int i=0; i<len; i++) 
+-		if (tolower(candidate[i])!=typed[i]) 
++		if (tolower(candidate[i])!=(wxChar)typed[i])
+ 			return false;
+ 	return true;
+ }
+@@ -79,7 +79,7 @@ bool CodeHelper::AutocompleteFromArray(mxSource *source, CodeHelperSpecialArray
+ 	int j, ll = words.keywords.GetCount();
+ 	for (j=0;j<ll;j++) {
+ 		unsigned int i=0;
+-		while (i<l && (tolower(words.keywords[j][i])==typed[i]))
++		while (i<l && (tolower(words.keywords[j][i])==(wxChar)typed[i]))
+ 			i++;
+ 		if (i==l) g_autocomp_list.Add(words.keywords[j],words.icon,words.help);
+ 	}
+diff --git a/src/CompilerErrorsManager.cpp b/src/CompilerErrorsManager.cpp
+index 169195b..9314c57 100644
+--- a/src/CompilerErrorsManager.cpp
++++ b/src/CompilerErrorsManager.cpp
+@@ -192,7 +192,7 @@ static void UnSTD(wxString &line) {
+ 	p=0; int p2;
+ 	while ((p2=line.Mid(p).Find("basic_string"))!=wxNOT_FOUND) { 
+ 		p+=p2;
+-		if (p>0&&((line[p-1]|32)<'a'||(line[p-1]|32)>'z')&&((line[p+12]|32)<'a'||(line[p+12]|32)>'z'))
++		if (p>0&&(((wxChar)line[p-1]|32)<'a'||((wxChar)line[p-1]|32)>'z')&&(((wxChar)line[p+12]|32)<'a'||((wxChar)line[p+12]|32)>'z'))
+ 			line.erase(p,6);
+ 		else
+ 			p+=12;
+@@ -201,7 +201,7 @@ static void UnSTD(wxString &line) {
+ 	p=0;
+ 	while ((p2=line.Mid(p).Find("std::"))!=wxNOT_FOUND) { 
+ 		p+=p2;
+-		if (p>0&&((line[p-1]|32)<'a'||(line[p-1]|32)>'z'))
++		if (p>0&&(((wxChar)line[p-1]|32)<'a'||((wxChar)line[p-1]|32)>'z'))
+ 			line.erase(p,5);
+ 		else
+ 			p+=5;
+diff --git a/src/DebugPatcher.cpp b/src/DebugPatcher.cpp
+index d608cce..f69d29b 100644
+--- a/src/DebugPatcher.cpp
++++ b/src/DebugPatcher.cpp
+@@ -23,10 +23,10 @@ bool DebugPatcher::mem_seg::extract(wxString &s, int &where) {
+ 		r*=16;
+ 		if (s[i]>='0'&&s[i]<='9') {
+ 			r+=s[i]-'0';
+-		} else if (s[i]>='A'&&s[i]<='F') {
+-			r+=s[i]+10-'A';
++		} else if ((wxChar)s[i]>='A'&&(wxChar)s[i]<='F') {
++			r+=(wxChar)s[i]+10-'A';
+ 		} else {
+-			r+=s[i]+10-'a';
++			r+=(wxChar)s[i]+10-'a';
+ 		}
+ 		i++;
+ 	}
+diff --git a/src/GDBAnsBuffer.h b/src/GDBAnsBuffer.h
+index e17a057..bbdf25d 100644
+--- a/src/GDBAnsBuffer.h
++++ b/src/GDBAnsBuffer.h
+@@ -49,7 +49,7 @@ public:
+ 		m_done = endl_pos+1; --m_unprocessed_lines;
+ 		// guess type
+ 		if (line.IsEmpty()) return EMPTY;
+-		switch (line[0]) {
++		switch ((wxChar)line[0]) {
+ 			case '^': return RESULT;
+ 			case '*': return EXEC_ASYNC;
+ 			case '+': return STATUS_ASYNC;
+diff --git a/src/Parser.cpp b/src/Parser.cpp
+index 7d95b7a..43b96de 100644
+--- a/src/Parser.cpp
++++ b/src/Parser.cpp
+@@ -354,7 +354,7 @@ void Parser::ParseNextFileContinue(const wxString &s) {
+ 		id = s.GetChar(0)-'0';
+ 		p[0]=1;
+ 	} else if (l>3 && s.GetChar(2)==';') {
+-		id = (s.GetChar(0)-'0')*10+s.GetChar(1)-'0';
++		id = ((wxChar)s.GetChar(0)-'0')*10+(wxChar)s.GetChar(1)-'0';
+ 		p[0]=2;
+ 	} else return;
+ 	// "cortar" las partes de la linea, separadas por ';' o 1. En p[i] se guardan las posiciones de estos caracteres de separacion
+@@ -578,7 +578,7 @@ void Parser::ParseNextFileContinue(const wxString &s) {
+ 			wxString key=PARSER_PARTE(0);
+ 			g_code_helper->UnMacro(name);
+ 			g_code_helper->UnTemplate(name);
+-			switch (s[p[5]+3]) {
++			switch ((wxChar)s[p[5]+3]) {
+ 			case '4':
+ 				PD_REGISTER_INHERIT(process->file,name,key,PD_CONST_PUBLIC);
+ 				break;
+diff --git a/src/mxDiffWindow.cpp b/src/mxDiffWindow.cpp
+index c15c839..41bd745 100644
+--- a/src/mxDiffWindow.cpp
++++ b/src/mxDiffWindow.cpp
+@@ -109,20 +109,20 @@ void mxDiffWindow::DiffSourceFile(mxSource *src, wxString fname) {
+ 		for (unsigned int i=0;i<output.GetCount();i++) {
+ 			int n1=0,n2=0,n3=0,n4=0,p=0;
+ 			while (output[i][p]>='0' && output[i][p]<='9')
+-				n1 = n1*10 + output[i][p++]-'0' ;
++				n1 = n1*10 + (wxChar)output[i][p++]-'0' ;
+ 			if (output[i][p]==',') {
+ 				p++;
+ 				while (output[i][p]>='0' && output[i][p]<='9')
+-					n2 = n2*10 + output[i][p++]-'0' ;
++					n2 = n2*10 + (wxChar)output[i][p++]-'0' ;
+ 			} else
+ 				n2=n1;
+ 			char c=output[i][p++];
+ 			while (output[i][p]>='0' && output[i][p]<='9')
+-				n3 = n3*10 + output[i][p++]-'0' ;
++				n3 = n3*10 + (wxChar)output[i][p++]-'0' ;
+ 			if (output[i][p]==',') {
+ 				p++;
+ 				while (output[i][p]>='0' && output[i][p]<='9')
+-					n4 = n4*10 + output[i][p++]-'0' ;
++					n4 = n4*10 + (wxChar)output[i][p++]-'0' ;
+ 			} else
+ 				n4=n3;
+ 			n1--; n2--; n3--; n4--;
+@@ -174,20 +174,20 @@ void mxDiffWindow::DiffTwoSources(mxSource *src1, mxSource *src2) {
+ 		for (unsigned int i=0;i<output.GetCount();i++) {
+ 			int n1=0,n2=0,n3=0,n4=0,p=0;
+ 			while (output[i][p]>='0' && output[i][p]<='9')
+-				n1 = n1*10 + output[i][p++]-'0' ;
++				n1 = n1*10 + (wxChar)output[i][p++]-'0' ;
+ 			if (output[i][p]==',') {
+ 				p++;
+ 				while (output[i][p]>='0' && output[i][p]<='9')
+-					n2 = n2*10 + output[i][p++]-'0' ;
++					n2 = n2*10 + (wxChar)output[i][p++]-'0' ;
+ 			} else
+ 				n2=n1;
+ 			char c=output[i][p++];
+ 			while (output[i][p]>='0' && output[i][p]<='9')
+-				n3 = n3*10 + output[i][p++]-'0' ;
++				n3 = n3*10 + (wxChar)output[i][p++]-'0' ;
+ 			if (output[i][p]==',') {
+ 				p++;
+ 				while (output[i][p]>='0' && output[i][p]<='9')
+-					n4 = n4*10 + output[i][p++]-'0' ;
++					n4 = n4*10 + (wxChar)output[i][p++]-'0' ;
+ 			} else
+ 				n4=n3;
+ 			n1--; n2--; n3--; n4--;
+diff --git a/src/mxGdbAsmPanel.h b/src/mxGdbAsmPanel.h
+index 9e31a24..4e5f2f3 100644
+--- a/src/mxGdbAsmPanel.h
++++ b/src/mxGdbAsmPanel.h
+@@ -16,7 +16,7 @@ class mxGdbAsmPanel : public wxPanel, public myDIGlobalEventHandler {
+ 			addr_t result = 0;
+ 			for (int l = address.Len(), i = 2; i<l; ++i) { // 2 por saltear el 0x
+ 				result *= 16; 
+-				char c = (address[i])|32;
++				char c = ((wxChar)address[i])|32;
+ 				if (c>='0'&&c<='9') result += address[i]-'0';
+ 				else /*(c>='a'&&c<='f')*/ result += (address[i]-'a'+10);
+ 			}
+diff --git a/src/mxMainWindow.cpp b/src/mxMainWindow.cpp
+index c4a12f1..d86787e 100644
+--- a/src/mxMainWindow.cpp
++++ b/src/mxMainWindow.cpp
+@@ -4494,7 +4494,7 @@ void mxMainWindow::OnSelectErrorCommon (const wxString & error, const wxString &
+ 		if (preline.Len()) {
+ 			unsigned int i=0, n=0;
+ 			while (i<preline.size() && preline[i]>='0' && preline[i]<='9') 
+-			{ n=n*10+preline[i++]-'0'; }
++			{ n=n*10+(wxChar)preline[i++]-'0'; }
+ 			if (i==preline.Len()) {
+ 				n+=source->PositionFromLine(line-1)-1;
+ 				source->SelectError(0,n,n);
+diff --git a/src/mxUtils.cpp b/src/mxUtils.cpp
+index 595e4fe..e748adc 100644
+--- a/src/mxUtils.cpp
++++ b/src/mxUtils.cpp
+@@ -101,8 +101,8 @@ void mxUT::SortArrayString(wxArrayString &array, int inf, int sup) {
+ 		while (true) {
+ 			int jl=array[inf].Len(),  l=(jl<ml?jl:ml)-2;
+ 			for (i=0;i<l;i++) {
+-				if ( (array[inf][i]|32)!=med[i] ) {
+-					bi=( (array[inf][i]|32)<med[i] );
++				if ( ((wxChar)array[inf][i]|32)!=(wxChar)med[i] ) {
++					bi=( ((wxChar)array[inf][i]|32)<(wxChar)med[i] );
+ 					break;
+ 				}
+ 			}
+@@ -116,8 +116,8 @@ void mxUT::SortArrayString(wxArrayString &array, int inf, int sup) {
+ 		while (true) {
+ 			int jl=array[sup].Len(), l=(jl<ml?jl:ml)-2;
+ 			for (i=0;i<l;i++) {
+-				if ( (array[sup][i]|32)!=med[i] ) {
+-					bs=( (array[sup][i]|32)>med[i] );
++				if ( ((wxChar)array[sup][i]|32)!=(wxChar)med[i] ) {
++					bs=( ((wxChar)array[sup][i]|32)>(wxChar)med[i] );
+ 					break;
+ 				}
+ 			}
+diff --git a/src/parserData.h b/src/parserData.h
+index 427115c..73366c4 100644
+--- a/src/parserData.h
++++ b/src/parserData.h
+@@ -251,8 +251,8 @@ mediante las macros PD_ADD_*, pero las cosas se borran solas mediante su destruc
+ 		pd_aux = it->second; \
+ 		wxString ext_new=(afile->name).AfterLast('.'); \
+ 		wxString ext_old=(pd_aux->file->name).AfterLast('.'); \
+-		bool was_header= ext_old.size()>0&&(ext_old[0]|32)=='h';\
+-		bool is_header = ext_new.size()>0&&(ext_new[0]|32)=='h';\
++		bool was_header= ext_old.size()>0&&((wxChar)ext_old[0]|32)=='h';\
++		bool is_header = ext_new.size()>0&&((wxChar)ext_new[0]|32)=='h';\
+ 		if (is_header || !was_header) { \
+ 			PD_DEL_REF(pd_aux->ref); \
+ 			PD_ADD_REF(afile->first_global,afile->counter,pd_aux); \
+-- 
+2.16.2.windows.1
+

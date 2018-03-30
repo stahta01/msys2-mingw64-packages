@@ -1,0 +1,28 @@
+From c567e46490de8176c48ec7aa15061f56c4c0df2f Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sun, 18 Mar 2018 11:50:56 -0400
+Subject: [PATCH 09/22] Use wxString method Lower()
+
+---
+ src/mxUtils.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/mxUtils.cpp b/src/mxUtils.cpp
+index 5e6dcc2..595e4fe 100644
+--- a/src/mxUtils.cpp
++++ b/src/mxUtils.cpp
+@@ -84,8 +84,9 @@ void mxUT::SortArrayString(wxArrayString &array, int inf, int sup) {
+ 	wxString med=array[osup],aux;
+ 	int i=0,ml=med.Len();
+ //	bool bi,bs;
+-	for (i=0;i<ml;i++)
+-		med[i]|=32;
++//	for (i=0;i<ml;i++)
++//		med[i]|=32;
++	med.Lower();
+ 	while (true) {
+ // for (int i=oinf;i<=osup;i++) {
+ // 	if (i==inf) cout<<"--";
+-- 
+2.16.2.windows.1
+

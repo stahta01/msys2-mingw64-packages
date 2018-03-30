@@ -1,0 +1,26 @@
+From 46fe3abf9fa3aefc848c30331198f0f7c15a2909 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sun, 18 Mar 2018 09:15:28 -0400
+Subject: [PATCH 04/22] Add "const" to fix wxWidgets 3.0 compiler error
+
+---
+ src/CodeHelper.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/CodeHelper.cpp b/src/CodeHelper.cpp
+index 6057bc6..d6c5ce2 100644
+--- a/src/CodeHelper.cpp
++++ b/src/CodeHelper.cpp
+@@ -1314,7 +1314,8 @@ void CodeHelper::TryToSuggestTemplateSolutionForLinkingErrors (const wxArrayStri
+ 	
+ 	for(unsigned int i=0;i<full_output.GetCount();i++) { 
+ 		
+-		wxString &l=full_output[i], keyword; 
++		const wxString &l=full_output[i];
++		wxString keyword;
+ 		
+ 		// simbolos que no encuentra el linker
+ 		int p=l.Find(EN_COMPOUT_UNDEFINED_REFERENCE);
+-- 
+2.16.2.windows.1
+

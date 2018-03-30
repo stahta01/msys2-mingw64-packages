@@ -1,0 +1,30 @@
+From 22add217a90fb59c9fb9e75abab646300f493893 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Fri, 16 Mar 2018 11:54:16 -0400
+Subject: [PATCH 19/22] Edit Makefile to support build using MSys2
+
+---
+ Makefile | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index 4fa84f7..e76910c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -45,3 +45,13 @@ wine-clean:
+ 	$(MAKE) -f Makefile.wine -C src clean
+ 	$(MAKE) -f Makefile.wine -C parser clean
+ 	$(MAKE) -f Makefile.wine -C src_extras clean
++
++msys-win32:
++	$(MAKE) -f Makefile.msys -C src
++	$(MAKE) -f Makefile.msys -C parser
++	$(MAKE) -f Makefile.msys -C src_extras
++
++msys-win32-clean:
++	$(MAKE) -f Makefile.msys -C src clean
++	$(MAKE) -f Makefile.msys -C parser clean
++	$(MAKE) -f Makefile.msys -C src_extras clean
+-- 
+2.16.2.windows.1
+

@@ -1,0 +1,103 @@
+From 9f86211b7d5ffc9c4aefc9e00bc0653a6b32003e Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sun, 25 Mar 2018 13:16:30 -0400
+Subject: [PATCH 3/3] msys2: Remove code using mxComplementInstallerWindow
+
+---
+ src/MenusAndToolsConfig.cpp |  2 +-
+ src/mxMainWindow.cpp        |  2 +-
+ src/mxMainWindowTools.cpp   |  4 +++-
+ src/mxReferenceWindow.cpp   | 26 +++++++++++++-------------
+ 4 files changed, 18 insertions(+), 16 deletions(-)
+
+diff --git a/src/MenusAndToolsConfig.cpp b/src/MenusAndToolsConfig.cpp
+index bb5533c..ebdb3fb 100644
+--- a/src/MenusAndToolsConfig.cpp
++++ b/src/MenusAndToolsConfig.cpp
+@@ -338,7 +338,7 @@ void MenusAndToolsConfig::LoadMenuData ( ) {
+ 		AddSeparator(mnTOOLS);
+ 		
+ 		AddMenuItem(mnTOOLS, myMenuItem("save_as_template",mxID_TOOLS_CREATE_TEMPLATE, LANG(MENUITEM_TOOLS_CREATE_TEMPLATE,"Guardar como nueva plantilla...")).Description("Permite guardar el programa simple o proyecto actual como plantilla").EnableIf(ecPROJECT_OR_SOURCE));
+-		AddMenuItem(mnTOOLS, myMenuItem("install_complement",mxID_TOOLS_INSTALL_COMPLEMENTS, LANG(MENUITEM_TOOLS_INSTALL_COMPLEMENTS,"Instalar Complementos...")).Description("Permite instalar un complemento ya descargado para ZinjaI"));
++//		AddMenuItem(mnTOOLS, myMenuItem("install_complement",mxID_TOOLS_INSTALL_COMPLEMENTS, LANG(MENUITEM_TOOLS_INSTALL_COMPLEMENTS,"Instalar Complementos...")).Description("Permite instalar un complemento ya descargado para ZinjaI"));
+ 	}	
+ 	
+ 	
+diff --git a/src/mxMainWindow.cpp b/src/mxMainWindow.cpp
+index d86787e..a82e3d3 100644
+--- a/src/mxMainWindow.cpp
++++ b/src/mxMainWindow.cpp
+@@ -394,7 +394,7 @@ BEGIN_EVENT_TABLE(mxMainWindow, wxFrame)
+ 	EVT_MENU(mxID_TOOLS_CUSTOM_TOOLS_SETTINGS, mxMainWindow::OnToolsCustomToolsSettings)
+ 	EVT_MENU(mxID_TOOLS_PROJECT_TOOLS_SETTINGS, mxMainWindow::OnToolsProjectToolsSettings)
+ 	EVT_MENU(mxID_TOOLS_CUSTOM_HELP, mxMainWindow::OnToolsCustomHelp)
+-	EVT_MENU(mxID_TOOLS_INSTALL_COMPLEMENTS, mxMainWindow::OnToolsInstallComplements)
++//	EVT_MENU(mxID_TOOLS_INSTALL_COMPLEMENTS, mxMainWindow::OnToolsInstallComplements)
+ 	
+ 	EVT_MENU(mxID_HELP_FIND_COMMAND, mxMainWindow::OnHelpFindCommand)
+ 	EVT_MENU(mxID_HELP_SHORTCUTS, mxMainWindow::OnHelpShortcuts)
+diff --git a/src/mxMainWindowTools.cpp b/src/mxMainWindowTools.cpp
+index fc40434..c93c19e 100644
+--- a/src/mxMainWindowTools.cpp
++++ b/src/mxMainWindowTools.cpp
+@@ -29,7 +29,7 @@
+ #include "mxExeInfo.h"
+ #include "mxColoursEditor.h"
+ #include "mxListSharedWindow.h"
+-#include "mxComplementInstallerWindow.h"
++// #include "mxComplementInstallerWindow.h"
+ #include "mxCppCheckConfigDialog.h"
+ #include "mxValgrindConfigDialog.h"
+ #include "Toolchain.h"
+@@ -1000,9 +1000,11 @@ void mxMainWindow::ToolsPreproc( int id_command ) {
+ //	src->SetFocus();
+ }
+ 
++#if 0
+ void mxMainWindow::OnToolsInstallComplements(wxCommandEvent &evt) {
+ 	new mxComplementInstallerWindow(this);
+ }
++#endif
+ 
+ void mxMainWindow::OnToolsCreateTemplate(wxCommandEvent &evt) {
+ 	wxString user_templates_dir=DIR_PLUS_FILE(config->config_dir,"templates");
+diff --git a/src/mxReferenceWindow.cpp b/src/mxReferenceWindow.cpp
+index 156a008..33bcc5c 100644
+--- a/src/mxReferenceWindow.cpp
++++ b/src/mxReferenceWindow.cpp
+@@ -283,19 +283,19 @@ bool mxReferenceWindow::PopulateInitialTree ( ) {
+ 	if (index_loaded) return true;
+ 	wxTextFile fil(DIR_PLUS_FILE(config->Help.cppreference_dir,_index));
+ 	if (!fil.Exists()) {
+-		mxMessageDialog::mdAns res = 
+-			mxMessageDialog(main_window,LANG(CPPREF_NOT_FOUND,""
+-								 "No se encontró el archivo indice. Es probable que la\n"
+-								 "referencia no está instalada, ya que no se incluye por\n"
+-								 "defecto en todas las versiones de ZinjaI.\n\n"
+-								 "Si dispone de acceso a internet puede descargarla e\n"
+-								 "instalarla como complemento ahora."))
+-			.Check1(LANG(CPPREF_INSTALL_NOW,"Descargar e instalar ahora"),true)
+-			.Title("Referencia C/C++").IconInfo().Run();
+-		if (res.check1) {
+-			new mxComplementInstallerWindow(this); wxYield();
+-			mxUT::OpenZinjaiSite("cppreference.html");
+-		}
++		//mxMessageDialog::mdAns res =
++			//mxMessageDialog(main_window,LANG(CPPREF_NOT_FOUND,""
++								 //"No se encontró el archivo indice. Es probable que la\n"
++								 //"referencia no está instalada, ya que no se incluye por\n"
++								 //"defecto en todas las versiones de ZinjaI.\n\n"
++								 //"Si dispone de acceso a internet puede descargarla e\n"
++								 //"instalarla como complemento ahora."))
++			//.Check1(LANG(CPPREF_INSTALL_NOW,"Descargar e instalar ahora"),true)
++			//.Title("Referencia C/C++").IconInfo().Run();
++		//if (res.check1) {
++			//new mxComplementInstallerWindow(this); wxYield();
++			//mxUT::OpenZinjaiSite("cppreference.html");
++		//}
+ 		return false;
+ 	}
+ 	
+-- 
+2.16.2.windows.1
+

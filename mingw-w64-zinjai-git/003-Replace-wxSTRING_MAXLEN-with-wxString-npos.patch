@@ -1,0 +1,25 @@
+From 92e6c14f5a37d9157a4efb3bbe107142521739e0 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sat, 17 Mar 2018 17:23:57 -0400
+Subject: [PATCH 03/22] Replace "wxSTRING_MAXLEN" with "wxString::npos"
+
+---
+ src/mxFilename.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/mxFilename.cpp b/src/mxFilename.cpp
+index 1fcc032..8af8f9e 100644
+--- a/src/mxFilename.cpp
++++ b/src/mxFilename.cpp
+@@ -78,7 +78,7 @@ wxString mxFilename::GetFileName (const wxString &fullpath, bool with_extension)
+ 		if (!with_extension && pdot==-1 && fullpath[i]=='.') pdot=i;
+ 		--i;
+ 	}
+-	return fullpath.Mid(i+1,pdot==-1?wxSTRING_MAXLEN:(pdot-i-1));
++	return fullpath.Mid(i+1,pdot==-1?wxString::npos:(pdot-i-1));
+ }
+ 
+ wxString mxFilename::GetPath (const wxString &fullpath, bool or_dot) {
+-- 
+2.16.2.windows.1
+
