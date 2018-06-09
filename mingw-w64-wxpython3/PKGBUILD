@@ -1,0 +1,199 @@
+####
+#
+# Based on packages found at these URLs
+#     https://github.com/Alexpux/MINGW-packages/tree/master/mingw-w64-wxPython
+#     https://github.com/Alexpux/MINGW-packages/tree/master/mingw-w64-wxWidgets
+#     https://git.archlinux.org/svntogit/community.git/tree/trunk/PKGBUILD?h=packages/python2-wxpython3
+#
+# Maintainer: Tim S <stahta01@gmail.com>
+#
+####
+
+# Packages that are assumed to be installed when building this package.
+#   pacman -S --needed --asdeps mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain
+
+
+_realname=wxpython3
+_py_foldername=wxPython
+_wx_basever=3.0
+_wx_basename=wxWidgets
+pkgname=(
+  "${MINGW_PACKAGE_PREFIX}-${_realname}"
+  "${MINGW_PACKAGE_PREFIX}-wxmsw3.0-${_realname}-dlls"
+  "${MINGW_PACKAGE_PREFIX}-wxmsw3.0-${_realname}"
+)
+pkgbase=mingw-w64-${_realname}
+pkgver=3.0.2.0
+pkgrel=1
+pkgdesc="A C++ library that lets developers create applications for Windows, Linux and UNIX (mingw-w64)"
+arch=('any')
+license=("custom:wxWindows")
+url="https://www.wxwidgets.org/"
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-python2"
+  "${MINGW_PACKAGE_PREFIX}-gcc-libs"
+  "${MINGW_PACKAGE_PREFIX}-expat"
+  "${MINGW_PACKAGE_PREFIX}-libjpeg-turbo"
+  "${MINGW_PACKAGE_PREFIX}-libpng"
+  "${MINGW_PACKAGE_PREFIX}-libtiff"
+  "${MINGW_PACKAGE_PREFIX}-xz"
+  "${MINGW_PACKAGE_PREFIX}-zlib"
+  "patch"
+  "make"
+)
+options=('strip' 'staticlibs' 'buildflags')
+source=(
+  https://downloads.sourceforge.net/wxpython/${_py_foldername}-src-${pkgver}.tar.bz2
+  "101-wxWidgets-3.0.2-relocate-prefix-in-bin-wx-config.patch"
+  "102-wxWidgets-3.0.2-make-abicheck-non-fatal.patch"
+  "001-wxpython-3.0.2-fix-config.patch"
+  "003-wxpython-3.0.2-fix-cast-error.patch"
+  "004-wxpython-3.0.2-plot-fix.patch"
+)
+sha256sums=('d54129e5fbea4fb8091c87b2980760b72c22a386cb3b9dd2eebc928ef5e8df61'
+            '7c3b8f6ba275a448a5e82d64c4914acd5aefb8bbb952389688f3e7167a787c56'
+            '46a1bb97d69163547da13d5e23a4c73e68de27ee601da5d2fb5bc5c417931453'
+            '61ca97f814b85b1274e751c694f9e3adc31ce1e22c56c9ca9c59e0337a36fef5'
+            'd7c4de5594149d2bba4a0ceb95d6a6a0c3c0e43ab9e876dce22440ccaad3b5f0'
+            '6280e51dc8be1187b2b5a3cc35e08721bf9c2b5e3dacc8d08bc25bd0bdc3aea1')
+
+prepare() {
+  cd "${srcdir}/${_py_foldername}-src-${pkgver}"
+
+  patch -p1 -i "${srcdir}"/101-wxWidgets-3.0.2-relocate-prefix-in-bin-wx-config.patch
+  patch -p1 -i "${srcdir}"/102-wxWidgets-3.0.2-make-abicheck-non-fatal.patch
+  patch -p1 -i ${srcdir}/001-wxpython-3.0.2-fix-config.patch
+  patch -p1 -i ${srcdir}/003-wxpython-3.0.2-fix-cast-error.patch
+  patch -p1 -i ${srcdir}/004-wxpython-3.0.2-plot-fix.patch
+
+  sed -e "s|#![ ]*/usr/bin/python$|#!/usr/bin/python2|" \
+      -e "s|#![ ]*/usr/bin/env python$|#!/usr/bin/env python2|" \
+      -e "s|#![ ]*/bin/env python$|#!/usr/bin/env python2|" \
+      -i $(find . -name '*.py')
+  # search and replace in files without file extensions
+  sed -e "s|#![ ]*/usr/bin/python$|#!/usr/bin/python2|" \
+      -e "s|#![ ]*/usr/bin/env python$|#!/usr/bin/env python2|" \
+      -e "s|#![ ]*/bin/env python$|#!/usr/bin/env python2|" \
+      -i $(find . -type f ! -name '*.*')
+}
+
+build() {
+  #CXXFLAGS+=" -std=gnu++11"
+  [[ -d "${srcdir}"/build-${CARCH} ]] && rm -rf "${srcdir}"/build-${CARCH}
+  mkdir -p "${srcdir}"/build-${CARCH} && cd "${srcdir}"/build-${CARCH}
+
+  ../${_py_foldername}-src-${pkgver}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST} \
+    --build=${MINGW_CHOST} \
+    --enable-vendor="wxpython3" \
+    --enable-shared \
+    --enable-iniconf \
+    --enable-iff \
+    --enable-permissive \
+    --enable-unicode \
+    --enable-graphics_ctx \
+    --enable-accessibility \
+    --disable-mediactrl \
+    --disable-monolithic \
+    --disable-mslu \
+    --disable-precomp-headers \
+    --with-msw \
+    --with-opengl \
+    --with-libpng=sys \
+    --with-libjpeg=sys \
+    --with-libtiff=sys \
+    --with-zlib=sys \
+    --with-expat=sys \
+    --with-regex=builtin
+
+  make #VERBOSE=1
+
+  [[ -d "${srcdir}"/install-${CARCH} ]] && rm -rf "${srcdir}"/install-${CARCH}
+  mkdir -p "${srcdir}"/install-${CARCH}
+  make DESTDIR="${srcdir}"/install-${CARCH} install
+
+  cd "${srcdir}/wxPython-src-${pkgver}/wxPython"
+  export CPPFLAGS="-I${srcdir}/wxPython-src-${pkgver}/include $CPPFLAGS"
+  export CPPFLAGS="-I${srcdir}/build-${CARCH}/lib/wx/include/msw-unicode-3.0 $CPPFLAGS"
+  export LDFLAGS="-L${srcdir}/build-${CARCH}/lib $LDFLAGS"
+  export PYTHON=${MINGW_PREFIX}/bin/python2
+  export WXWIN="${srcdir}/wxPython-src-${pkgver}"
+  PATH="${srcdir}/build-${CARCH}:$PATH" \
+  ${MINGW_PREFIX}/bin/python2 setup.py WXPORT=msw BUILD_ACTIVEX=0 UNICODE=1 COMPILER=mingw32 build
+}
+
+_package_wxpython3() {
+  pkgdesc="Implementation of wxWidgets API for wxPython 3 (mingw-w64)"
+  conflicts=("${MINGW_PACKAGE_PREFIX}-wxPython")
+  depends=(
+    "${MINGW_PACKAGE_PREFIX}-python2"
+    "${MINGW_PACKAGE_PREFIX}-wxmsw3.0-${_realname}-dlls"
+)
+  cd "${srcdir}/wxPython-src-${pkgver}/wxPython"
+  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=;--install-headers=;-install-data=" \
+  ${MINGW_PREFIX}/bin/python2 setup.py NO_HEADERS=0 WXPORT=msw BUILD_ACTIVEX=0 UNICODE=1 COMPILER=mingw32 \
+    install --prefix=${MINGW_PREFIX} --root="${pkgdir}"
+  # Work around for wrong header location in package; could not find out why it happens, sometimes.
+  [[ -d "${pkgdir}"/include ]] && mv "${pkgdir}"/include "${pkgdir}"/${MINGW_PREFIX}/include
+
+  # License files
+  cd "${srcdir}/${_py_foldername}-src-${pkgver}"/docs
+  install -Dm644 licence.txt  "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
+}
+
+_package_wxmsw() {
+  pkgdesc="Shared wxWidgets build compatible with wxPython 3 (mingw-w64)"
+  conflicts=("${MINGW_PACKAGE_PREFIX}-wxWidgets" "${MINGW_PACKAGE_PREFIX}-wxmsw${_wx_basever}")
+  depends=("${MINGW_PACKAGE_PREFIX}-wxmsw3.0-${_realname}-dlls")
+
+  cp --recursive "${srcdir}"/install-${CARCH}/${MINGW_PREFIX}/ ${pkgdir}/
+
+  # Rename wx-config
+#  mv ${pkgdir}${MINGW_PREFIX}/bin/wx-config{,-${_realname}}
+
+  # Remove files installed by _package_wxmsw_ddls
+  rm -f ${pkgdir}${MINGW_PREFIX}/lib/*.dll
+
+# Remove conflicting files; that do NOT need to be renamed.
+#  rm -f ${pkgdir}${MINGW_PREFIX}/share/aclocal/wxwin.m4
+#  rm -f ${pkgdir}${MINGW_PREFIX}/bin/wxrc.exe
+#  rm -f ${pkgdir}${MINGW_PREFIX}/bin/wxrc-${_wx_basever}
+
+
+# Remove conflicting files; that I have no idea how to rename
+  rm -fr ${pkgdir}${MINGW_PREFIX}/share/bakefile
+  rm -fr ${pkgdir}${MINGW_PREFIX}/share/locale
+
+  # License files
+  cd "${srcdir}/${_py_foldername}-src-${pkgver}"/docs
+  install -Dm644 preamble.txt "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/preamble.txt"
+  install -Dm644 licendoc.txt "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/licendoc.txt"
+  install -Dm644 lgpl.txt     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/lgpl.txt"
+  install -Dm644 gpl.txt      "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/gpl.txt"
+  install -Dm644 xserver.txt  "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/xserver.txt"
+}
+
+_package_wxmsw_dlls() {
+  pkgdesc="wxWidgets DLLs for wxPython 3 (mingw-w64)"
+  depends=(
+    "${MINGW_PACKAGE_PREFIX}-gcc-libs"
+    "${MINGW_PACKAGE_PREFIX}-expat"
+    "${MINGW_PACKAGE_PREFIX}-libjpeg-turbo"
+    "${MINGW_PACKAGE_PREFIX}-libpng"
+    "${MINGW_PACKAGE_PREFIX}-libtiff"
+    "${MINGW_PACKAGE_PREFIX}-xz"
+    "${MINGW_PACKAGE_PREFIX}-zlib"
+  )
+
+  mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
+  cp "${srcdir}"/install-${CARCH}/${MINGW_PREFIX}/lib/*.dll ${pkgdir}${MINGW_PREFIX}/bin/
+}
+
+package_mingw-w64-i686-wxpython3() { _package_wxpython3; }
+package_mingw-w64-x86_64-wxpython3() { _package_wxpython3; }
+package_mingw-w64-i686-wxmsw3.0-wxpython3() { _package_wxmsw; }
+package_mingw-w64-x86_64-wxmsw3.0-wxpython3() { _package_wxmsw; }
+package_mingw-w64-i686-wxmsw3.0-wxpython3-dlls() { _package_wxmsw_dlls; }
+package_mingw-w64-x86_64-wxmsw3.0-wxpython3-dlls() { _package_wxmsw_dlls; }
