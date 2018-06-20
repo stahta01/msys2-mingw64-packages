@@ -1,0 +1,23 @@
+From c52b061f931a165fe282579a61374b0a715a5dc1 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sun, 17 Jun 2018 11:07:16 -0400
+Subject: [PATCH] set wafMD5 for 2.0.7 python2
+
+---
+
+diff --git a/build.py b/build.py
+index dd5ff26f..332474d7 100755
+--- a/build.py
++++ b/build.py
+@@ -84,7 +88,7 @@ sipMD5 = {
+ }
+ 
+ wafCurrentVersion = '2.0.7'
+-wafMD5 = '48ac1250bcccd0674cf461937875ce9a'
++wafMD5 = '0edce1f386e695247a29bd5b7af90f48'
+ 
+ doxygenCurrentVersion = '1.8.8'
+ doxygenMD5 = {
+-- 
+2.17.1.windows.2
+

@@ -1,0 +1,140 @@
+####
+#
+# Based on packages found at these URLs
+#     https://aur.archlinux.org/packages/wxpython-phoenix-git/
+#     https://www.archlinux.org/packages/community-testing/i686/wxpython/
+#     https://github.com/Alexpux/MINGW-packages/tree/master/mingw-w64-wxPython
+#
+# Maintainer: Tim S <stahta01@gmail.com>
+#
+####
+
+# Packages that are assumed to be installed when building this package.
+#   pacman -S --needed mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain
+
+
+_realname=wxPython
+_namesuffix="-git"
+_foldername=wxPython
+pkgbase=mingw-w64-${_realname}${_namesuffix}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}${_namesuffix}"
+pkgver=4.0.2a1.r3808.g4ab2ea68
+pkgrel=1
+pkgdesc="A wxWidgets GUI toolkit for Python (mingw-w64)"
+arch=('any')
+license=("custom:wxWindows")
+groups=()
+url="https://github.com/wxWidgets/Phoenix"
+depends=("${MINGW_PACKAGE_PREFIX}-python2")
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-expat"
+  "${MINGW_PACKAGE_PREFIX}-libjpeg-turbo"
+  "${MINGW_PACKAGE_PREFIX}-libpng"
+  "${MINGW_PACKAGE_PREFIX}-libtiff"
+  "${MINGW_PACKAGE_PREFIX}-python3"
+  "${MINGW_PACKAGE_PREFIX}-xz"
+  "${MINGW_PACKAGE_PREFIX}-zlib"
+  "${MINGW_PACKAGE_PREFIX}-SDL"
+#  "${MINGW_PACKAGE_PREFIX}-waf"
+  "git" "patch"
+)
+conflicts=(${MINGW_PACKAGE_PREFIX}-${_realname})
+replaces=()
+options=('strip' 'staticlibs' 'buildflags')
+# options=(!emptydirs)
+install=
+_sip_version=4.19.7
+source=("git+https://github.com/wxWidgets/wxWidgets.git"
+#  "Phoenix::git+https://github.com/wxWidgets/Phoenix#branch=master"
+  "Phoenix::git+https://github.com/wxWidgets/Phoenix#branch=wxPy-4.0.x"
+  "https://wxpython.org/Phoenix/tools/doxygen-1.8.8-win32.exe.bz2"
+  "https://wxpython.org/Phoenix/tools/sip-${_sip_version}-win32.exe.bz2"
+  "https://wxpython.org/Phoenix/tools/waf-2.0.7.bz2"
+  "001-wxWidgets-3.0.2-relocate-prefix-in-bin-wx-config.patch"
+  "003-wxPython-4.0.0-fix-some-build-issues-for-MSys2.patch"
+  "004-wxPython-4.0.0-set-wafMD5-for-2.0.7-python2.patch"
+)
+sha256sums=('SKIP'
+            'SKIP'
+            '541bd207e28cc80a8f0e3602a43e1daf3bcc973bdfdfa65dd5ddd2dc379ae296'
+            'daeb4b7d6e6d3f34857a83af3cb5c1cc1352a6836be48deffd919fc9c9afbb02'
+            '14ec52e9ee78d11683ec25474bcf5d0ba50e76a9118f88adc0fc422c908199c1'
+            '7c3b8f6ba275a448a5e82d64c4914acd5aefb8bbb952389688f3e7167a787c56'
+            '65c288b9d52f5521a8eb73758cb999dad4f4c9ab980d8053182729fad550fa0e'
+            '36f89791c727eb9643c3eab819518e5aeca5740dfc4309e5e74ab2e63c38aad5')
+
+prepare() {
+  cd "${srcdir}/Phoenix"
+
+  cp "${srcdir}/doxygen-1.8.8-win32.exe"  "${srcdir}/Phoenix/bin/doxygen-1.8.8-win32.exe"
+  cp "${srcdir}/sip-${_sip_version}-win32.exe"  "${srcdir}/Phoenix/bin/sip-${_sip_version}-win32.exe"
+  cp "${srcdir}/waf-2.0.7"  "${srcdir}/Phoenix/bin/waf-2.0.7"
+  # Python 2 fix
+  sed -i '0,/env python/s//python2/' "${srcdir}/Phoenix/bin/waf-2.0.7"
+
+  patch -Np1 -i ${srcdir}/003-wxPython-4.0.0-fix-some-build-issues-for-MSys2.patch
+  patch -Np1 -i ${srcdir}/004-wxPython-4.0.0-set-wafMD5-for-2.0.7-python2.patch
+
+  git submodule init
+  git config submodule.ext/wxWidgets.url "$srcdir/wxWidgets"
+  git submodule update
+
+# find . -type f -exec sed -i 's/env python/env python2/' {} \;
+
+  cd "${srcdir}/Phoenix/ext/wxWidgets"
+  git checkout -- wx-config.in
+  patch -p1 -i ${srcdir}/001-wxWidgets-3.0.2-relocate-prefix-in-bin-wx-config.patch
+}
+
+pkgver() {
+  cd "${srcdir}/Phoenix"
+  local   major=$(head -n 40 buildtools/version.py | grep 'VER_MAJOR'   | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
+  local   minor=$(head -n 40 buildtools/version.py | grep 'VER_MINOR'   | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
+  local release=$(head -n 40 buildtools/version.py | grep 'VER_RELEASE' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
+  local    flag=$(head -n 40 buildtools/version.py | sed -e 's:#.*$::g' | grep 'VER_FLAGS' | sed -e 's/"//g' | sed -e 's:^.*=::g' | tr -d '[:space:]')
+  printf "%s.%s.%s%s.r%s.g%s" "$major" "$minor" "$release" "$flag" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build(){
+  cd "${srcdir}/Phoenix"
+
+  local MINGW_PREFIX_WIN=$(cygpath -am ${MINGW_PREFIX})
+
+  export MSYS_BASE="$(cygpath -am /)"
+#  export WAF="$MINGW_PREFIX_WIN/bin/waf"
+
+  python build.py clean_wx
+  # Clean files that seemed to be causing build errors sometimes
+  git clean -fx buildtools/*.pyc
+  git clean -fx etg/*.pyc
+  git clean -fx etgtools/*.pyc
+  git clean -fx sphinxtools/*.pyc
+  git clean -fx sip/gen/*.sip
+
+# echo "PATH := $PATH"
+# echo "uname -o := $(uname -o)"
+
+  python build.py dox etg --nodoc sip build_wx
+}
+
+package() {
+  cd "${srcdir}/Phoenix"
+
+  export MSYS_BASE="$(cygpath -am /)"
+#  export WAF="$MINGW_PREFIX_WIN/bin/waf"
+
+  python build.py clean_py
+
+  python build.py --verbose dox etg --nodoc sip build_py
+
+  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=;--install-headers=;-install-data=" \
+  ${MINGW_PREFIX}/bin/python2 setup.py NO_HEADERS=0 WXPORT=msw BUILD_ACTIVEX=0 UNICODE=1 COMPILER=mingw32 \
+    install --skip-build --prefix=${MINGW_PREFIX} --root="${pkgdir}"
+
+  install -D -m644 ../docs/licence.txt "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
+
+  local _dir=$(cygpath -am ${MINGW_PREFIX})
+  for _f in ${pkgdir}${MINGW_PREFIX}/bin/*; do
+    sed -e "s|${_dir}|${MINGW_PREFIX}|g" -i ${_f}
+  done
+}

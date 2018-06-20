@@ -1,0 +1,323 @@
+From 101f45b664f3469409bd10d7d847cc119e84defb Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sat, 18 Nov 2017 19:10:27 -0500
+Subject: [PATCH] fix some build issues for MSys2
+
+---
+ build.py                      | 49 +++++++++++++++++++++++++++++++++++--------
+ buildtools/build_wxwidgets.py | 12 +++++++++--
+ buildtools/builder.py         |  2 +-
+ buildtools/config.py          | 27 +++++++++++++++++++-----
+ wscript                       | 15 ++++++++++---
+ 5 files changed, 85 insertions(+), 20 deletions(-)
+
+diff --git a/build.py b/build.py
+index d9797541..92ef1847 100755
+--- a/build.py
++++ b/build.py
+@@ -63,6 +63,10 @@ wxversion3_nodot = wxversion3.replace(".", "")
+ unstable_series = (version.wxVER_MINOR % 2) == 1  # is the minor version odd or even?
+ 
+ isWindows = sys.platform.startswith('win')
++if isWindows and "MSYSTEM" in os.environ:
++    isMsys = os.popen('uname -o', 'r').read()[:-1].startswith('Msys')
++else:
++    isMsys = False
+ isDarwin = sys.platform == "darwin"
+ devMode = False
+ 
+@@ -737,7 +741,7 @@ def uploadTree(srcPath, destPath, options, keep=30):
+ 
+ 
+ def checkCompiler(quiet=False):
+-    if isWindows:
++    if isWindows and not isMsys:
+         # Make sure that the compiler that Python wants to use can be found.
+         # It will terminate if the compiler is not found or other exceptions
+         # are raised.
+@@ -822,7 +826,16 @@ def _doDox(arg):
+     doxCmd = getDoxCmd()
+     doxCmd = os.path.abspath(doxCmd)
+ 
+-    if isWindows:
++    if isMsys:
++        msys_path = os.environ.get('MSYS_BASE')
++        doxCmd = doxCmd.replace('\\', '/')
++        doxCmd = runcmd(msys_path+'/usr/bin/cygpath -u '+doxCmd, True, False)
++        os.environ['DOXYGEN'] = doxCmd
++        os.environ['WX_SKIP_DOXYGEN_VERSION_CHECK'] = '1'
++        d = posixjoin(wxDir(), 'docs/doxygen')
++        d = d.replace('\\', '/')
++        cmd = '%s/usr/bin/bash.exe -l -c "cd %s && ./regen.sh %s"' % (msys_path, d, arg)
++    elif isWindows:
+         cygwin_path = getCygwinPath()
+         doxCmd = doxCmd.replace('\\', '/')
+         doxCmd = runcmd(cygwin_path+'/bin/cygpath -u '+doxCmd, True, False)
+@@ -1203,7 +1216,7 @@ def cmd_build_wx(options, args):
+     if options.jobs:
+         build_options.append('--jobs=%s' % options.jobs)
+ 
+-    if isWindows:
++    if isWindows and not isMsys:
+         # Windows-specific pre build stuff
+         if options.cairo:
+             build_options.append('--cairo')
+@@ -1213,6 +1226,22 @@ def cmd_build_wx(options, args):
+         if options.jom:
+             build_options.append('--jom')
+ 
++    elif isWindows and isMsys:
++        # Windows-specific pre build stuff
++        if options.cairo:
++            build_options.append('--cairo')
++            cairo_root = os.path.join(phoenixDir(), 'packaging', 'cairo-msw')
++            os.environ['CAIRO_ROOT'] = cairo_root
++
++        if options.jom:
++            build_options.append('--jom')
++
++        BUILD_DIR = getBuildDir(options)
++        PREFIX = options.prefix
++        if PREFIX:
++            build_options.append('--prefix=%s' % PREFIX)
++        if not os.path.exists(BUILD_DIR):
++            os.makedirs(BUILD_DIR)
+     else:
+         # Platform is something other than MSW
+         if options.osx_carbon:
+@@ -1279,6 +1308,8 @@ def cmd_build_wx(options, args):
+         # Import and run the wxWidgets build script
+         from buildtools import build_wxwidgets as wxbuild
+ 
++        pwd = pushDir(BUILD_DIR)
++
+         print('wxWidgets build options: ' + str(build_options))
+         wxbuild.main(wxDir(), build_options)
+ 
+@@ -1385,7 +1416,7 @@ def cmd_build_py(options, args):
+     if options.release:
+         os.environ['WXPYTHON_RELEASE'] = 'yes'
+ 
+-    if not isWindows:
++    if not isWindows or isMsys:
+         WX_CONFIG = posixjoin(BUILD_DIR, 'wx-config')
+         if options.use_syswx:
+             wxcfg = posixjoin(options.prefix, 'bin', 'wx-config')
+@@ -1401,7 +1432,7 @@ def cmd_build_py(options, args):
+ 
+     build_options = list()
+     if options.verbose:
+-        build_options.append('--verbose')
++        build_options.append('-vvv')
+ 
+     if options.debug or (isWindows and options.both):
+         build_options.append("--debug")
+@@ -1409,12 +1440,12 @@ def cmd_build_py(options, args):
+             wafBuildDir = posixjoin(wafBuildBase, 'debug')
+     if isDarwin and options.mac_arch:
+         build_options.append("--mac_arch=%s" % options.mac_arch)
+-    if isWindows:
++    if isWindows and not isMsys:
+         if PYTHON_ARCH == '64bit':
+             build_options.append('--msvc_arch=x64')
+         else:
+             build_options.append('--msvc_arch=x86')
+-    if not isWindows:
++    if not isWindows or isMsys:
+         build_options.append('--wx_config=%s' % WX_CONFIG)
+     if options.verbose:
+         build_options.append('--verbose')
+@@ -1630,7 +1661,7 @@ def cmd_egg_info(options, args, egg_base=None):
+ 
+ def cmd_clean_wx(options, args):
+     cmdTimer = CommandTimer('clean_wx')
+-    if isWindows:
++    if isWindows and not isMsys:
+         if options.both:
+             options.debug = True
+         msw = getMSWSettings(options)
+@@ -1662,7 +1693,7 @@ def cmd_clean_py(options, args):
+     files = list()
+     for wc in ['*.py', '*.pyc', '*.so', '*.dylib', '*.pyd', '*.pdb', '*.pi', '*.pyi']:
+         files += glob.glob(opj(cfg.PKGDIR, wc))
+-    if isWindows:
++    if isWindows and not isMsys:
+         msw = getMSWSettings(options)
+         for wc in [ 'wx*' + wxversion2_nodot + msw.dll_type + '*.dll',
+                     'wx*' + wxversion3_nodot + msw.dll_type + '*.dll']:
+diff --git a/buildtools/build_wxwidgets.py b/buildtools/build_wxwidgets.py
+index a54aea6f..d84132ee 100644
+--- a/buildtools/build_wxwidgets.py
++++ b/buildtools/build_wxwidgets.py
+@@ -189,7 +189,7 @@ def main(wxDir, args):
+     if sys.platform.startswith("win"):
+         contribDir = os.path.join(wxRootDir, "contrib", "build")
+ 
+-    if sys.platform.startswith("win"):
++    if sys.platform.startswith("win") and not "MSYSTEM" in os.environ:
+         toolkit = "msvc"
+     else:
+         toolkit = "autoconf"
+@@ -272,7 +272,15 @@ def main(wxDir, args):
+         if options.gtk2:
+             options.gtk3 = False
+ 
+-        if not sys.platform.startswith("darwin"):
++        if sys.platform.startswith("win"):
++            host = os.environ.get('MINGW_CHOST')
++            if host == "":
++               host = "i686-w64-mingw32"
++            configure_opts.append("--host="+host)
++            configure_opts.append("--build="+host)
++            configure_opts.append("--with-msw")
++
++        if not sys.platform.startswith("darwin") and not sys.platform.startswith("win"):
+             if options.gtk3:
+                 configure_opts.append("--with-gtk=3")
+ 
+diff --git a/buildtools/builder.py b/buildtools/builder.py
+index cbc45d6b..4d7932aa 100644
+--- a/buildtools/builder.py
++++ b/buildtools/builder.py
+@@ -189,7 +189,7 @@ class AutoconfBuilder(GNUMakeBuilder):
+             return 1
+ 
+         optionsStr = " ".join(options) if options else ""
+-        command = "%s %s" % (configure_cmd, optionsStr)
++        command = "%s \"%s %s\"" % ("sh -c",configure_cmd, optionsStr)
+         print(command)
+         result = os.system(command)
+         #os.chdir(olddir)
+diff --git a/buildtools/config.py b/buildtools/config.py
+index e8e968aa..35b3b350 100644
+--- a/buildtools/config.py
++++ b/buildtools/config.py
+@@ -28,6 +28,11 @@ import distutils.sysconfig
+ 
+ runSilently = False
+ 
++if sys.platform.startswith('win') and "MSYSTEM" in os.environ:
++    isMsys = os.popen('uname -o', 'r').read()[:-1].startswith('Msys')
++else:
++    isMsys = False
++
+ #----------------------------------------------------------------------
+ 
+ class Configuration(object):
+@@ -50,7 +55,7 @@ class Configuration(object):
+     # wx-config command will be assembled based on version, port,
+     # etc. and it will be looked for on the default $PATH.
+ 
+-    WXPORT = 'gtk3'
++    WXPORT = 'msw'
+     # On Linux/Unix there are several ports of wxWidgets available.
+     # Setting this value lets you select which will be used for the
+     # wxPython build.  Possibilities are 'gtk', 'gtk2', 'gtk3' and 'x11'.
+@@ -68,7 +73,7 @@ class Configuration(object):
+     WXDLLVER = None
+     # Version part of wxWidgets LIB/DLL names
+ 
+-    COMPILER = 'msvc'
++    COMPILER = 'mingw32'
+     # Used to select which compiler will be used on Windows.  This not
+     # only affects distutils, but also some of the default flags and
+     # other assumptions in this script.  Current supported values are
+@@ -396,7 +401,11 @@ class Configuration(object):
+             flags += ' --version=%s.%s' % (self.wxVER_MAJOR, self.wxVER_MINOR)
+ 
+             searchpath = os.environ["PATH"]
+-            for p in searchpath.split(':'):
++            if isMsys:
++                searchpathsplitter = ';'
++            else:
++                searchpathsplitter = ':'
++            for p in searchpath.split(searchpathsplitter):
+                 fp = os.path.join(p, 'wx-config')
+                 if os.path.exists(fp) and os.access(fp, os.X_OK):
+                     # success
+@@ -413,7 +422,10 @@ class Configuration(object):
+ 
+ 
+     def getWxConfigValue(self, flag):
+-        cmd = "%s %s" % (self.WX_CONFIG, flag)
++        if isMsys:
++            cmd = "%s \"%s %s\"" % ("sh -c", self.WX_CONFIG, flag)
++        else:
++            cmd = "%s %s" % (self.WX_CONFIG, flag)
+         value = os.popen(cmd, 'r').read()[:-1]
+         return value
+ 
+@@ -557,9 +569,14 @@ class Configuration(object):
+         newLFLAGS = []
+         for flag in lflags:
+             if flag[:2] == '-L':
+-                libdirs.append(flag[2:])
++                if isMsys:
++                    libdirs.append(os.popen(' '.join(['cygpath', '-am', flag[2:]])).readline().strip())
++                else:
++                    libdirs.append(flag[2:])
+             elif flag[:2] == '-l':
+                 libs.append(flag[2:])
++            elif isMsys and flag[:1] == '/':
++                libs.append(os.popen(' '.join(['cygpath', '-am', flag])).readline().strip())
+             else:
+                 newLFLAGS.append(flag)
+         return newLFLAGS
+diff --git a/wscript b/wscript
+index b242902d..6f64a2d0 100644
+--- a/wscript
++++ b/wscript
+@@ -20,6 +20,10 @@ APPNAME = 'wxPython'
+ VERSION = cfg.VERSION
+ 
+ isWindows = sys.platform.startswith('win')
++if isWindows and "MSYSTEM" in os.environ:
++    isMsys = os.popen('uname -o', 'r').read()[:-1].startswith('Msys')
++else:
++    isMsys = False
+ isDarwin = sys.platform == "darwin"
+ 
+ top = '.'
+@@ -27,8 +31,10 @@ out = 'build/waf'
+ 
+ 
+ def options(opt):
+-    if isWindows:
++    if isWindows and cfg.COMPILER == 'msvc':
+         opt.load('msvc')
++    elif isWindows and cfg.COMPILER == 'mingw32':
++        opt.load('gcc')
+     else:
+         opt.load('compiler_cc compiler_cxx')
+     opt.load('python')
+@@ -67,7 +73,7 @@ def options(opt):
+ 
+ 
+ def configure(conf):
+-    if isWindows:
++    if isWindows and cfg.COMPILER == 'msvc':
+         # For now simply choose the compiler version based on the Python
+         # version. We have a chicken-egg problem here. The compiler needs to
+         # be selected before the Python stuff can be configured, but we need
+@@ -77,6 +83,9 @@ def configure(conf):
+         conf.env['MSVC_VERSIONS'] = ['msvc ' + msvc_version]
+         conf.env['MSVC_TARGETS'] = [conf.options.msvc_arch]
+         conf.load('msvc')
++    elif isWindows and cfg.COMPILER == 'mingw32':
++        import distutils.cygwinccompiler
++        conf.load('gcc')
+     else:
+         conf.load('compiler_cc compiler_cxx')
+ 
+@@ -98,7 +107,7 @@ def configure(conf):
+     # Ensure that the headers in siplib and Phoenix's src dir can be found
+     conf.env.INCLUDES_WXPY = ['sip/siplib', 'src']
+ 
+-    if isWindows:
++    if isWindows and not isMsys:
+         # Windows/MSVC specific stuff
+ 
+         cfg.finishSetup(debug=conf.env.debug)
+-- 
+2.15.1.windows.2
+
