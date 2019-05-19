@@ -1,0 +1,42 @@
+# Maintainer: Tim S <stahta01@gmail.com>
+#
+# Packages that are assumed to be installed when building this package.
+#   pacman -S --needed --asdeps base-devel mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain
+#
+
+_realname=syasokoban
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=2.0.1
+_pkgcharver=d
+pkgrel=1
+pkgdesc="Game in which a player pushes boxes around in a warehouse (mingw-w64)"
+arch=('any')
+url="https://github.com/davidjoffe/sokoban"
+license=('BSD' 'GPL2')
+makedepends=()
+depends=("${MINGW_PACKAGE_PREFIX}-SDL")
+options=('strip')
+
+source=("https://github.com/davidjoffe/sokoban/archive/v${pkgver}${_pkgcharver}.tar.gz")
+sha256sums=('a25eb1380b46228ef069050d024b01b3a3d587023af5eaeec3b424a7539eaee9')
+
+prepare() {
+  cd "${srcdir}"/sokoban-${pkgver}${_pkgcharver}
+#  patch -p1 -i ${srcdir}/
+}
+
+build() {
+  cd "${srcdir}"/sokoban-${pkgver}${_pkgcharver}
+  make clean
+
+  make
+}
+
+package() {
+  cd "${srcdir}"/sokoban-${pkgver}${_pkgcharver}
+
+  mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
+
+  cp syasokoban.exe ${pkgdir}${MINGW_PREFIX}/bin
+}
