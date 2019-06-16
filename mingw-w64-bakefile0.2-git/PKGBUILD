@@ -1,0 +1,85 @@
+# Contributor: Tim S. <stahta01@gmail.com>
+
+_basename=bakefile
+_basever=0.2
+_realname=${_basename}${_basever}
+pkgbase=mingw-w64-${_realname}-git
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-git"
+provides=(
+  "${MINGW_PACKAGE_PREFIX}-${_realname}"
+)
+conflicts=(
+  "${MINGW_PACKAGE_PREFIX}-${_basename}"
+  "${MINGW_PACKAGE_PREFIX}-${_realname}"
+)
+pkgver=0.2.9.r1318.bc97906
+pkgrel=1
+pkgdesc="cross-platform, cross-compiler native makefiles and projects generator (mingw-w64)"
+arch=('any')
+license=('MIT')
+url="http://bakefile.org/"
+depends=(
+)
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-gcc"
+  "${MINGW_PACKAGE_PREFIX}-python2"
+  "${MINGW_PACKAGE_PREFIX}-swig"
+  "git"
+)
+options=('strip' 'staticlibs' 'buildflags')
+source=(
+  ${_basename}::"git+https://github.com/vslavik/bakefile.git#branch=legacy-0.2-branch"
+
+  "0001-Add-win-dll-fixes.patch"
+  "0002-Add-missing-man-files.patch"
+)
+
+sha256sums=(
+  'SKIP'
+
+  '702cd5fe75c51735ec4f48855f064ed5aa311fb873821a416f73422644fe0cdc'
+  '7f9fdd54551c9ccb39f3291364525e625c137c0ca9e1556953a15b332f5cfbe1'
+)
+
+pkgver() {
+  cd ${srcdir}/${_basename}
+  local _version=$(head -n 34 src/version.py | grep 'BAKEFILE_VERSION'  | sed -e 's/.* //' | tr -d '"\n')
+  printf "%s.r%s.%s" "$_version" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+prepare() {
+  cd "${srcdir}/${_basename}"
+  # reset to the last commit before version 0.2.10
+  git reset --hard bc9790672fe7fa238e15628c87a64aa7cbe1f45f
+  git clean -d -f
+
+
+  patch -p1 -i "${srcdir}"/0001-Add-win-dll-fixes.patch
+  patch -p1 -i "${srcdir}"/0002-Add-missing-man-files.patch
+
+  ./bootstrap
+}
+
+build() {
+
+  [[ -d "${srcdir}"/build-${CARCH} ]] && rm -rf "${srcdir}"/build-${CARCH}
+  mkdir -p "${srcdir}"/build-${CARCH} && cd "${srcdir}"/build-${CARCH}
+
+  PYTHON=${MINGW_PREFIX}/bin/python2 \
+  ../${_basename}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST} \
+    --build=${MINGW_CHOST}
+
+  make #VERBOSE=1
+}
+
+package() {
+  cd "${srcdir}"/build-${CARCH}
+  make DESTDIR="${pkgdir}" install
+
+  # License files
+  cd "${srcdir}"/${_basename}
+  install -Dm644 COPYING "${pkgdir}/usr/share/licenses/${pkgbase}/COPYING.txt"
+}

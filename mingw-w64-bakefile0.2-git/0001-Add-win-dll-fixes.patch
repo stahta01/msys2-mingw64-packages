@@ -1,0 +1,12 @@
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -129,7 +129,8 @@ codepy25modules_PYTHON = \
+ code_LTLIBRARIES = _bkl_c.la
+ 
+ _bkl_c_la_SOURCES = src/bottlenecks.c src/bkl_c_wrap.c
+-_bkl_c_la_LDFLAGS = -module -avoid-version
++_bkl_c_la_LDFLAGS = -module -avoid-version -no-undefined -Xlinker --export-all-symbols
++_bkl_c_la_LIBADD = -lpython2.7
+ _bkl_c_la_CFLAGS = $(PYTHON_CPPFLAGS)
+ 
+ EXTRA_DIST = \
