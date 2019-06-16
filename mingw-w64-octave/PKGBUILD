@@ -1,0 +1,94 @@
+# Maintainer (ArchLinux): Stefan Husmann <stefan-husmann@t-online.de>
+# Contributor (ArchLinux): Benjamin van der Burgh <benjaminvdb@gmail.com>
+# Maintainer (MSYS2): Ray Donnelly <mingw.android@gmail.com>
+
+_realname=octave
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=4.2.1
+pkgrel=1
+pkgdesc="A high-level language, primarily intended for numerical computations (mingw-w64)"
+url="https://www.gnu.org/software/octave/"
+arch=('any')
+license=('GPL')
+# Some of these may be optional, e.g. arpack, lapack, qhull, but if they
+# are installed, octave will be linked against them.
+depends=("${MINGW_PACKAGE_PREFIX}-arpack"
+         "${MINGW_PACKAGE_PREFIX}-curl"
+         "${MINGW_PACKAGE_PREFIX}-fftw>=3.2.2"
+         "${MINGW_PACKAGE_PREFIX}-fltk"
+         "${MINGW_PACKAGE_PREFIX}-glpk"
+         "${MINGW_PACKAGE_PREFIX}-gl2ps"
+         "${MINGW_PACKAGE_PREFIX}-hdf5"
+         "${MINGW_PACKAGE_PREFIX}-qhull"
+         "${MINGW_PACKAGE_PREFIX}-qrupdate"
+         "${MINGW_PACKAGE_PREFIX}-qscintilla"
+         "${MINGW_PACKAGE_PREFIX}-graphicsmagick")
+makedepends=("${MINGW_PACKAGE_PREFIX}-gcc-fortran"
+             'pcre'
+             'mercurial'
+             'git'
+             'gperf'
+             'rsync'
+             # ArchLinux uses suitesparse-octavecompat.
+             "${MINGW_PACKAGE_PREFIX}-suitesparse")
+#             'transfig'
+#             'epstool')
+#             'texlive-core')
+optdepends=('texinfo: for help-support in octave'
+            'gnuplot: alternative plotting'
+            'portaudio: for using audiodevinfo.oct')
+conflicts=('octave')
+install=octave.install
+options=('!emptydirs' '!makeflags')
+source=(ftp://ftp.gnu.org/gnu/octave/octave-$pkgver.tar.gz{,.sig}
+#        octave-qscintilla-2.10.patch
+        # gnulib
+#        "0001-tempname.h-Rename-try-to-try_.patch"
+        # octave
+        "0001-Port-to-Qt5.patch"
+        "0002-OCTAVE_CHECK_LIB-for-suitesparseconfig.patch")
+validpgpkeys=('DBD9C84E39FE1AAE99F04446B05F05B75D36644B')  # John W. Eaton
+sha256sums=('80c28f6398576b50faca0e602defb9598d6f7308b0903724442c2a35a605333b'
+            'SKIP'
+#            'ba53969f6fd923051cd306f414af0646ed7dc526'
+#            '745424d2c3f91e65d0be51487f707340e2f46db5e7bc3ae509cad08dd5c699a2'
+            '5aacbe79ce47654ca3953e62164fe0b6b841d5ae98400fbfd8c9230de680897b'
+            'f987b2e47e0a3c1fa0e1bd2f1a0cc3f0c9ed58f82718827b08a624e039748b0c')
+_folder=octave
+provides=("${MINGW_PACKAGE_PREFIX}-octave")
+
+
+prepare() {
+  [[ -d ${srcdir}/${_folder} ]] && rm -rf "${srcdir}"/${_folder}
+  mkdir "${srcdir}"/${_folder}
+  mv "${srcdir}"/octave-* "${srcdir}"/${_folder}
+#  cd "${srcdir}"/gnulib
+#  patch -p1 -i "${srcdir}"/0001-tempname.h-Rename-try-to-try_.patch
+  cd "${srcdir}"/${_folder}
+  patch -p1 -i "${srcdir}"/0001-Port-to-Qt5.patch
+  patch -p1 -i "${srcdir}"/0002-OCTAVE_CHECK_LIB-for-suitesparseconfig.patch
+  ./bootstrap --no-git
+#  --gnulib-srcdir=$srcdir/gnulib
+ }
+
+build() {
+  cd "${srcdir}"
+  [[ -d build-${CARCH} ]] && rm -rf build-${CARCH}
+  mkdir build-${CARCH}
+  cd build-${CARCH}
+  [[ $CARCH == "x86_64" ]] && _arch=amd64
+  [[ $CARCH == "i686" ]] && _arch=i386
+  CPPFLAGS+=" -D_POSIX -D_POSIX_C_SOURCE " \
+  "${srcdir}"/${_folder}/configure \
+      --prefix=${MINGW_PREFIX} \
+      --enable-shared --enable-jit \
+      --enable-qhull --with-umfpack \
+      --with-quantum-depth=16 --disable-java
+  make
+}
+
+package() {
+  cd ${srcdir}/${_folder}/build-${CARCH}
+  make DESTDIR=${pkgdir} install
+}
