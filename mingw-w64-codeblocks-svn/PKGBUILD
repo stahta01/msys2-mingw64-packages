@@ -1,0 +1,243 @@
+# Maintainer: Tim S <stahta01@gmail.com>
+
+_realname='codeblocks'
+_sourcedir=${_realname}-svn
+_cb_ver=17.12
+_wx_basever=3.1
+_wx_libname="wxmsw${_wx_basever}"
+pkgbase="mingw-w64-${_realname}-svn"
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-${_wx_libname}-svn"
+provides=(
+  "${MINGW_PACKAGE_PREFIX}-${_realname}"
+)
+conflicts=(
+  "${MINGW_PACKAGE_PREFIX}-${_realname}"
+)
+pkgver=17.12.r11742
+pkgrel=1
+url='http://codeblocks.org/'
+pkgdesc='Cross-platform C/C++ IDE (mingw-w64)'
+license=('GPL')
+arch=(any)
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-gcc-libs"
+  "${MINGW_PACKAGE_PREFIX}-hunspell"
+  "${MINGW_PACKAGE_PREFIX}-drmingw"
+  "${MINGW_PACKAGE_PREFIX}-${_wx_libname}"
+)
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-boost"
+  "${MINGW_PACKAGE_PREFIX}-libtool"
+  "${MINGW_PACKAGE_PREFIX}-gcc"
+  "${MINGW_PACKAGE_PREFIX}-pkg-config"
+  "zip"
+  "svn"
+  "automake-wrapper"
+  "autoconf"
+  "make"
+  "patch"
+  "rsync"
+)
+
+
+_svn_host=svn.code.sf.net
+# _svn_uri=https://${_svn_host}/p/codeblocks/code/trunk
+_svn_uri=svn://${_svn_host}/p/codeblocks/code/trunk
+
+# Please use svn.code.sf.net _svn_uri because it works better when it is working
+#   this github.com _svn_uri is for testing when svn.code.sf.net is down
+# _svn_host=github.com
+# _svn_uri=https://${_svn_host}/stahta01/codeblocks_https_metadata/trunk
+
+source=(
+  # Not safe to apply to upstream CB SVN Repo.
+  001-cb-17.12r11227-Do-not-include-boost-m4-files.patch
+
+  # Fix-sdk-configure-make-build.patch is safe to apply to upstream CB SVN Repo.
+  011-cb-17.12-Fix-sdk-configure-make-build.patch
+  # Fix-compiler-configure-make-build.patch is safe to apply to upstream CB SVN Repo.
+  012-cb-16.01-Fix-compiler-configure-make-build.patch
+  # Fix-coreapp-configure-make-build.patch is safe to apply to upstream CB SVN Repo.
+  013-cb-16.01-Fix-coreapp-configure-make-build.patch
+
+  # Not safe to apply to upstream CB SVN Repo.
+  020-cb-16.01-Add-exe-to-auto_revision.patch
+  # Not safe to apply to upstream CB SVN Repo.
+  021-cb-16.01-Make-win32-pch-files.patch
+
+  # No idea if safe to apply to upstream CB SVN Repo.
+  101-cb-17.12-Add-private-wxMSW-headers.patch
+
+  # Fix-ConsoleRunner-build-error.patch is safe to apply to upstream CB SVN Repo.
+  201-cb-16.01-Fix-ConsoleRunner-build-error.patch
+  # Fix-wxGTKwin-build.patch is safe to apply to upstream CB SVN Repo.
+  202-cb-17.12-Fix-wxGTKwin-build.patch
+  # Fix-win32-detect.patch is safe to apply to upstream CB SVN Repo.
+  200-cb-17.12r11428-Fix-win32-detect.patch
+
+  # No idea if Fix-sdk-pch-issue.patch is safe to apply to upstream CB SVN Repo.
+  300-cb-16.01-Fix-sdk-pch-issue.patch
+  # No idea if Fix-cb-startup-issue.patch is safe to apply to upstream CB SVN Repo.
+  302-cb-17.12-Fix-cb-startup-issue.patch
+  # Not safe to apply to upstream CB SVN Repo.
+  303-cb-17.12-Change-default-personality-to-msys2.patch
+)
+# 000-009 Changes that must be done before bootstrap (configure.ac)
+# 010-099 Build changes that can be done after bootstrap (Makefile.am)
+# 010-019 Build changes that can be pushed to Code::Blocks upstream
+# 020-029 Build changes that can *not* be pushed to Code::Blocks upstream
+# 100-199 Code changes that might be safe to push to Code::Blocks upstream
+# 200-299 Code changes that can be pushed to Code::Blocks upstream
+# 300-399 Code changes that can *not* be pushed to Code::Blocks upstream
+# 400-499 Add CB Projects for use under MSys2
+# 990-999 Special patch files used to support patch file creation
+
+sha256sums=('f0343396887025337789a5ffac90179c7d4f9811ebf5181dcce3e48464a90619'
+            '2bcea2501694f07665ef2dcac3521bd4b1f9c7f9461b80bc2b1da09e347d6bfa'
+            'b9c57b333c67376fcd5b3ca598a2d7f5873455ac28f1e03bb305efcfde6c9678'
+            'edb04577ce448c82634d2e7a41d2be949a842d588a35a0fbfad54d72b1a68324'
+            '3152a93b562f7d6342c07a1382c673ff65c54ecc33da594dc09857877b5490ff'
+            '49ff09b508dfe9f7c6fbaf4e19bdb75029dc6615542d42b27a52488f231c1efd'
+            'e00c4a3d5b0db0b27a52890bc93e994507585a619a6a418fe14cc74ee9d487da'
+            'b2c293ab7c96705f0d56c8c11f6da32f7341e0b1703969b16da9c323ecae23ca'
+            '66663387eb759f3dfa4f85bc6cfb4c8a75c17fceaa7d11551dac51f1f43b8415'
+            '762406d8a76baba355b79e88607f204a7ceb7abf264a84da4e619af2ba5413e4'
+            '7cda901c48fe679cabf418cf353b5b188c3c3afa823628087297f160d053afd3'
+            'f58d5e3f3a8d8cb27216dcecbe429bdc32c37437db7bd29029e5578e7156085d'
+            'c32e55e35b1d5c6e415b275cb598757de82d67b52c87f2d9597094176719eafd')
+
+options=('!strip')
+
+pkgver() {
+  cd "${srcdir}/${_sourcedir}"
+  if [[ ${_svn_host} == "github.com" ]] ; then
+    local _svnrev=`svn log -l 1 | grep "^git-svn-id: " | sed "s|.*\@\([0-9]\+\).*|\1|"`
+  else
+    local _svnrev=`svnversion | tr -d 'A-z[:blank:]'`
+  fi
+  printf "%s.%s" "${_cb_ver}" "r$_svnrev"
+}
+
+prepare() {
+  cd ..                 # Change to the folder above ${srcdir}
+  _startdir=$(pwd)      # Should be folder that contains PKGBUILD file.
+
+  cd "${_startdir}"
+
+  if [[ -d ${_sourcedir}/.svn ]]; then
+    echo "Updating SVN Repo"
+    (cd ${_sourcedir} && \
+      ( svn cleanup --non-interactive || true ) && \
+      ( svn cleanup --non-interactive --remove-unversioned --remove-ignored  || true ) && \
+      ( svn update --ignore-externals || true ) && \
+      ( svn update --ignore-externals || true ) && \
+      svn revert -R .
+    )
+  else
+    svn checkout --ignore-externals $_svn_uri ${_sourcedir}
+  fi
+
+  mkdir -p "${srcdir}/${_sourcedir}"
+  cd  "${srcdir}/${_sourcedir}"
+  echo "removing selected files from SVN Repo copy"
+  rm -f  m4/*.m4
+  rm -fr src/base/tinyxml/.deps
+  rm -fr src/build_tools/autorevision/.deps
+  rm -fr src/sdk/.deps
+  rm -fr src/sdk/mozilla_chardet/src/.deps
+  rm -fr src/sdk/scripting/bindings/.deps
+  rm -fr src/sdk/scripting/sqplus/.deps
+  rm -fr src/sdk/scripting/sqstdlib/.deps
+  rm -fr src/sdk/scripting/squirrel/.deps
+  rm -fr src/sdk/wxpropgrid/src/.deps
+  rm -fr src/sdk/wxscintilla/src/.deps
+  rm -fr src/sdk/wxscintilla/src/scintilla/lexers/.deps
+  rm -fr src/sdk/wxscintilla/src/scintilla/lexlib/.deps
+  rm -fr src/sdk/wxscintilla/src/scintilla/src/.deps
+
+  echo "rsyncing SVN Repo"
+  rsync --recursive --times --omit-dir-times --delete --whole-file "${_startdir}/${_sourcedir}"/* "${srcdir}/${_sourcedir}"
+  rsync --recursive --times --omit-dir-times --delete --whole-file "${_startdir}/${_sourcedir}"/.svn/* "${srcdir}/${_sourcedir}/.svn"
+
+  echo "Cleaning SVN Repo"
+  svn cleanup --non-interactive && \
+    svn cleanup --remove-unversioned --remove-ignored
+
+# Remove Folders that I think might cause MSys2 build issues
+  rm -fr src/exchndl
+
+# Remove Folders to cause issues
+#  rm -fr src/templates
+
+  patch -p1 -i "${srcdir}"/001-cb-17.12r11227-Do-not-include-boost-m4-files.patch
+
+  patch -p1 -i "${srcdir}"/011-cb-17.12-Fix-sdk-configure-make-build.patch
+  patch -p1 -i "${srcdir}"/012-cb-16.01-Fix-compiler-configure-make-build.patch
+  patch -p1 -i "${srcdir}"/013-cb-16.01-Fix-coreapp-configure-make-build.patch
+  patch -p1 -i "${srcdir}"/020-cb-16.01-Add-exe-to-auto_revision.patch
+  patch -p1 -i "${srcdir}"/021-cb-16.01-Make-win32-pch-files.patch
+
+  patch -p1 -i "${srcdir}"/101-cb-17.12-Add-private-wxMSW-headers.patch
+
+  patch -p1 -i "${srcdir}"/200-cb-17.12r11428-Fix-win32-detect.patch
+  patch -p1 -i "${srcdir}"/201-cb-16.01-Fix-ConsoleRunner-build-error.patch
+  patch -p1 -i "${srcdir}"/202-cb-17.12-Fix-wxGTKwin-build.patch
+
+  patch -p1 -i "${srcdir}"/300-cb-16.01-Fix-sdk-pch-issue.patch
+  patch -p1 -i "${srcdir}"/302-cb-17.12-Fix-cb-startup-issue.patch
+  patch -p1 -i "${srcdir}"/303-cb-17.12-Change-default-personality-to-msys2.patch
+
+  echo "Running bootstrap"
+  PATH="${MINGW_PREFIX}/bin":"$PATH" ./bootstrap
+}
+
+build() {
+  cd "${srcdir}/${_sourcedir}"
+
+  local _MINGW_PREFIX_WIN="$(cygpath -am "${MINGW_PREFIX}")"
+  # This export needed if NOT using plain "wx-config"
+  export WX_CONFIG_PATH="${MINGW_PREFIX}/bin/wx-config-${_wx_basever} --prefix=${_MINGW_PREFIX_WIN}"
+  #export WX_CONFIG_PATH="${MINGW_PREFIX}/bin/wx-config --static=no --prefix=${_MINGW_PREFIX_WIN}"
+
+  ##This export needed for spellchecker plugin
+  export CB_HUNSPELL_LIBS="`${MINGW_PREFIX}/bin/pkg-config hunspell --libs-only-l`"
+  # --host=${MSYSTEM_CHOST} does NOT work on MSys2; but, I think something should be used on Cygwin.
+  PATH="${MINGW_PREFIX}/bin":"$PATH" ./configure --with-platform=win32 \
+    --disable-pch \
+    --enable-debug \
+    --prefix=${MINGW_PREFIX} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST} \
+    --build=${MINGW_CHOST} \
+    --with-contrib-plugins=yes,-Valgrind,-keybinder,-help,-exporter,-wxsmithcontrib,-wxsmithaui,-NassiShneiderman
+  ###
+  # The Valgrind program does NOT work under Win32
+  # keybinder has major build problem
+  #   wxMSW30: cbkeybinder.cpp:38:41: fatal error: wx/msw/private/keyboard.h: No such file or directory
+  # exporter has minor build problem
+  #   src/pdfannotation.cpp:24:10: fatal error: wx/pdfannotation.h: No such file or directory
+  # wxsmithcontrib has build errors
+  # wxsmithaui has build errors
+  #   ../../../../src/plugins/contrib/wxSmith/wxwidgets/properties/../../properties/wxseditenumproperty.h:27:10: fatal error: ../wxwidgets/wxscodercontext.h: No such file or directory
+  # help plugin has runtime issues; it crashes when enabled
+  # NassiShneiderman has link errors because it does not to link to boost library
+  ###
+  PATH="${MINGW_PREFIX}/bin":"$PATH" make --jobs=1
+}
+
+package() {
+  cd "${srcdir}/${_sourcedir}"
+
+  make DESTDIR="$pkgdir" install
+
+  # Rename files
+  mv ${pkgdir}${MINGW_PREFIX}/bin/${MINGW_CHOST}-cb_console_runner.exe  ${pkgdir}${MINGW_PREFIX}/bin/cb_console_runner.exe
+  mv ${pkgdir}${MINGW_PREFIX}/bin/${MINGW_CHOST}-cb_share_config.exe    ${pkgdir}${MINGW_PREFIX}/bin/cb_share_config.exe
+  mv ${pkgdir}${MINGW_PREFIX}/bin/${MINGW_CHOST}-codeblocks.exe         ${pkgdir}${MINGW_PREFIX}/bin/codeblocks.exe
+
+  # Move files
+  mv -f ${pkgdir}${MINGW_PREFIX}/lib/codeblocks/bin/*.dll ${pkgdir}${MINGW_PREFIX}/bin/
+
+  # License files
+  install -Dm644 COPYING "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING.txt"
+}

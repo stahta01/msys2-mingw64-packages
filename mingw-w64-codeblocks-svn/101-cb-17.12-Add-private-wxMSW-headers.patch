@@ -1,0 +1,234 @@
+From 058c2fb6aaffb5b51bd080a74bc0a1c0c2b326b2 Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Sun, 2 Jun 2019 09:13:46 -0400
+Subject: Add private wxMSW headers
+
+---
+ .../keybinder/wx/msw/private/keyboard.h       |  41 ++++++
+ .../include/wx/msw/private/comptr.h           | 129 ++++++++++++++++++
+ .../include/wx/msw/private/graphicsd2d.h      |  31 +++++
+ 3 files changed, 201 insertions(+)
+ create mode 100644 src/plugins/contrib/keybinder/wx/msw/private/keyboard.h
+ create mode 100644 src/sdk/wxscintilla/include/wx/msw/private/comptr.h
+ create mode 100644 src/sdk/wxscintilla/include/wx/msw/private/graphicsd2d.h
+
+diff --git a/src/plugins/contrib/keybinder/wx/msw/private/keyboard.h b/src/plugins/contrib/keybinder/wx/msw/private/keyboard.h
+new file mode 100644
+index 000000000..002303e96
+--- /dev/null
++++ b/src/plugins/contrib/keybinder/wx/msw/private/keyboard.h
+@@ -0,0 +1,41 @@
++///////////////////////////////////////////////////////////////////////////////
++// Name:        wx/msw/private/keyboard.h
++// Purpose:     Helper keyboard-related functions.
++// Author:      Vadim Zeitlin
++// Created:     2010-09-09
++// Copyright:   (c) 2010 Vadim Zeitlin <vadim@wxwidgets.org>
++// Licence:     wxWindows licence
++///////////////////////////////////////////////////////////////////////////////
++
++#ifndef _WX_MSW_PRIVATE_KEYBOARD_H_
++#define _WX_MSW_PRIVATE_KEYBOARD_H_
++
++#include "wx/defs.h"
++
++namespace wxMSWKeyboard
++{
++
++// ----------------------------------------------------------------------------
++// Functions for translating between MSW virtual keys codes and wx key codes
++//
++// These functions are currently implemented in src/msw/window.cpp.
++// ----------------------------------------------------------------------------
++
++// Translate MSW virtual key code to wx key code. lParam is used to distinguish
++// between numpad and extended version of the keys, extended is assumed by
++// default if lParam == 0.
++//
++// Returns WXK_NONE if translation couldn't be done at all (this happens e.g.
++// for dead keys and in this case uc will be WXK_NONE too) or if the key
++// corresponds to a non-Latin-1 character in which case uc is filled with its
++// Unicode value.
++/* __declspec (dllimport) */ int VKToWX(WXWORD vk, WXLPARAM lParam = 0, wchar_t *uc = NULL);
++
++// Translate wxKeyCode enum element (passed as int for compatibility reasons)
++// to MSW virtual key code. isExtended is set to true if the key corresponds to
++// a non-numpad version of a key that exists both on numpad and outside it.
++/* __declspec (dllimport) */ WXWORD WXToVK(int id, bool *isExtended = NULL);
++
++} // namespace wxMSWKeyboard
++
++#endif // _WX_MSW_PRIVATE_KEYBOARD_H_
+diff --git a/src/sdk/wxscintilla/include/wx/msw/private/comptr.h b/src/sdk/wxscintilla/include/wx/msw/private/comptr.h
+new file mode 100644
+index 000000000..2b21cfa82
+--- /dev/null
++++ b/src/sdk/wxscintilla/include/wx/msw/private/comptr.h
+@@ -0,0 +1,129 @@
++///////////////////////////////////////////////////////////////////////////////
++// Name:        wx/msw/private/comptr.h
++// Purpose:     Smart pointer for COM interfaces.
++// Author:      PB
++// Created:     2012-04-16
++// Copyright:   (c) 2012 wxWidgets team
++// Licence:     wxWindows licence
++///////////////////////////////////////////////////////////////////////////////
++
++#ifndef _WX_MSW_PRIVATE_COMPTR_H_
++#define _WX_MSW_PRIVATE_COMPTR_H_
++
++// ----------------------------------------------------------------------------
++// wxCOMPtr: A minimalistic smart pointer for use with COM interfaces.
++// ----------------------------------------------------------------------------
++
++template <class T>
++class wxCOMPtr
++{
++public:
++    typedef T element_type;
++
++    wxCOMPtr()
++        : m_ptr(NULL)
++    {
++    }
++
++    explicit wxCOMPtr(T* ptr)
++        : m_ptr(ptr)
++    {
++        if ( m_ptr )
++            m_ptr->AddRef();
++    }
++
++    wxCOMPtr(const wxCOMPtr& ptr)
++        : m_ptr(ptr.get())
++    {
++        if ( m_ptr )
++            m_ptr->AddRef();
++    }
++
++    ~wxCOMPtr()
++    {
++        if ( m_ptr )
++            m_ptr->Release();
++    }
++
++    void reset(T* ptr = NULL)
++    {
++        if ( m_ptr != ptr)
++        {
++            if ( ptr )
++                ptr->AddRef();
++            if ( m_ptr )
++                m_ptr->Release();
++            m_ptr = ptr;
++        }
++    }
++
++    wxCOMPtr& operator=(const wxCOMPtr& ptr)
++    {
++        reset(ptr.get());
++        return *this;
++    }
++
++    wxCOMPtr& operator=(T* ptr)
++    {
++        reset(ptr);
++        return *this;
++    }
++
++    operator T*() const
++    {
++        return m_ptr;
++    }
++
++    T& operator*() const
++    {
++        return *m_ptr;
++    }
++
++    T* operator->() const
++    {
++        return m_ptr;
++    }
++
++    // It would be better to forbid direct access completely but we do need
++    // for QueryInterface() and similar functions, so provide it but it can
++    // only be used to initialize the pointer, not to modify an existing one.
++    T** operator&()
++    {
++        wxASSERT_MSG(!m_ptr,
++                     wxS("Can't get direct access to initialized pointer"));
++
++        return &m_ptr;
++    }
++
++    T* get() const
++    {
++        return m_ptr;
++    }
++
++    bool operator<(T* ptr) const
++    {
++        return get() < ptr;
++    }
++
++private:
++    T* m_ptr;
++};
++
++// Define a helper for the macro below: we just need a function taking a
++// pointer and not returning anything to avoid warnings about unused return
++// value of the cast in the macro itself.
++namespace wxPrivate { inline void PPV_ARGS_CHECK(void*) { } }
++
++// Takes the interface name and a pointer to a pointer of the interface type
++// and expands into the IID of this interface and the same pointer but after a
++// type-safety check.
++//
++// This is similar to the standard IID_PPV_ARGS macro but takes the pointer
++// type instead of relying on the non-standard Microsoft __uuidof().
++#define wxIID_PPV_ARGS(IType, pType) \
++    IID_##IType, \
++    (wxPrivate::PPV_ARGS_CHECK(static_cast<IType*>(*pType)), \
++     reinterpret_cast<void**>(pType))
++
++#endif // _WX_MSW_PRIVATE_COMPTR_H_
++
+diff --git a/src/sdk/wxscintilla/include/wx/msw/private/graphicsd2d.h b/src/sdk/wxscintilla/include/wx/msw/private/graphicsd2d.h
+new file mode 100644
+index 000000000..390799d06
+--- /dev/null
++++ b/src/sdk/wxscintilla/include/wx/msw/private/graphicsd2d.h
+@@ -0,0 +1,31 @@
++/////////////////////////////////////////////////////////////////////////////
++// Name:        wx/msw/private/graphicsd2d.h
++// Purpose:     Allow functions from graphicsd2d.cpp to be used in othe files
++// Author:      New Pagodi
++// Created:     2017-10-31
++// Copyright:   (c) 2017 wxWidgets development team
++// Licence:     wxWindows licence
++/////////////////////////////////////////////////////////////////////////////
++
++#ifndef WX_MSW_PRIVATE_GRAPHICSD2D_H_
++#define WX_MSW_PRIVATE_GRAPHICSD2D_H_
++
++#if wxUSE_GRAPHICS_DIRECT2D
++
++// Ensure no previous defines interfere with the Direct2D API headers
++#undef GetHwnd
++
++// include before wincodec.h to prevent winsock/winsock2 redefinition warnings
++// #include "wx/msw/wrapwin.h"
++
++#include <d2d1.h>
++#include <dwrite.h>
++#include <wincodec.h>
++
++/* __declspec (dllimport) */ IWICImagingFactory* wxWICImagingFactory();
++/* __declspec (dllimport) */ ID2D1Factory* wxD2D1Factory();
++/* __declspec (dllimport) */ IDWriteFactory* wxDWriteFactory();
++
++#endif // wxUSE_GRAPHICS_DIRECT2D
++
++#endif // WX_MSW_PRIVATE_GRAPHICSD2D_H_
+-- 

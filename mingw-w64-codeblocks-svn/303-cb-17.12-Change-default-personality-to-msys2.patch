@@ -1,0 +1,25 @@
+From 01299c157719ccd4aa56f7a2b505c42ff82cfd04 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sun, 1 Apr 2018 11:58:13 -0400
+Subject: [PATCH 6/6] code: Change default personality to "msys2".
+
+---
+ src/sdk/personalitymanager.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sdk/personalitymanager.cpp b/src/sdk/personalitymanager.cpp
+index 5590ca7c7..5b12b8825 100644
+--- a/src/sdk/personalitymanager.cpp
++++ b/src/sdk/personalitymanager.cpp
+@@ -25,7 +25,7 @@ template<> bool  Mgr<PersonalityManager>::isShutdown = false;
+ 
+ PersonalityManager::PersonalityManager()
+ {
+-    PersonalityManager::pers = _T("default");
++    PersonalityManager::pers = _T("msys2");
+ }
+ 
+ void PersonalityManager::SetPersonality(const wxString& personality, cb_unused bool createIfNotExist)
+-- 
+2.16.2.windows.1
+
