@@ -1,0 +1,59 @@
+# (ArchLinux AUR) Maintainer: Tim Jester-Pfadt <t.jp<at>gmx.de>
+
+pkgname=gnome-builder-git
+pkgver=9292.026d194b
+pkgrel=1
+pkgdesc="Builder, a new IDE for Gnome"
+arch=('i686' 'x86_64')
+url="https://wiki.gnome.org/Apps/Builder"
+license=(GPL)
+conflicts=(gnome-builder)
+depends=(
+  #gtksourceview3-git
+  "${MINGW_PACKAGE_PREFIX}-gtksourceview3"
+  # 'gtk3-git'
+  "${MINGW_PACKAGE_PREFIX}-gtk3" 
+  # 'libpeas-git'
+  "${MINGW_PACKAGE_PREFIX}-libpeas"
+  "${MINGW_PACKAGE_PREFIX}-gsettings-desktop-schemas"
+  # 'dconf' 
+  "${MINGW_PACKAGE_PREFIX}-devhelp"
+  "${MINGW_PACKAGE_PREFIX}-glade"
+  #'webkit2gtk'
+  "${MINGW_PACKAGE_PREFIX}-webkitgtk3" 
+  "gtk-doc"
+  "${MINGW_PACKAGE_PREFIX}-clang" 
+  #'gjs' 
+  #'libgit2-glib-git'
+  "${MINGW_PACKAGE_PREFIX}-libgit2-glib" 
+  #'glib2-git'
+  "${MINGW_PACKAGE_PREFIX}-glib2"
+)
+makedepends=(
+  #'gnome-common-git'
+  "${MINGW_PACKAGE_PREFIX}-gnome-common"
+  #'gobject-introspection-git'
+  "${MINGW_PACKAGE_PREFIX}-gobject-introspection" 
+  "${MINGW_PACKAGE_PREFIX}-llvm"
+  "intltool"
+)
+# install=gnome-builder.install
+source=('git+git://git.gnome.org/gnome-builder')
+sha256sums=('SKIP')
+
+build() {
+  cd "$srcdir"/gnome-builder
+  #autoreconf -fi
+  ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-rdtscp --disable-schemas-compile
+  make
+}
+
+package() {
+  cd "$srcdir"/gnome-builder
+  make DESTDIR="$pkgdir" install
+}
+
+pkgver() {
+  cd "$srcdir"/gnome-builder
+  echo $(git rev-list --count master).$(git rev-parse --short master)
+}
