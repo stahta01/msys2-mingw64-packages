@@ -1,0 +1,1207 @@
+From f8180e9ecfd435da7fd962016be90c8e5ac459ee Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Tue, 2 Jul 2019 18:23:30 -0400
+Subject: Rename function cgraph_node to cgraph_create_node.
+
+And, rename old function cgraph_create_node to cgraph_create_node_1.
+
+Idea for fix found in SVN172307 by Martin Jambor on 2011-04-12
+---
+ gcc/ada/gcc-interface/utils.c |  2 +-
+ gcc/c-decl.c                  |  2 +-
+ gcc/c-family/c-gimplify.c     |  2 +-
+ gcc/cgraph.c                  | 32 ++++++++++++++++----------------
+ gcc/cgraph.h                  |  2 +-
+ gcc/cgraphbuild.c             | 28 ++++++++++++++--------------
+ gcc/cgraphunit.c              | 16 ++++++++--------
+ gcc/config/i386/i386.c        |  2 +-
+ gcc/config/rs6000/rs6000.c    |  2 +-
+ gcc/cp/class.c                |  2 +-
+ gcc/cp/decl2.c                |  6 +++---
+ gcc/cp/mangle.c               |  2 +-
+ gcc/cp/method.c               |  4 ++--
+ gcc/cp/optimize.c             |  6 +++---
+ gcc/cp/semantics.c            |  4 ++--
+ gcc/except.c                  |  4 ++--
+ gcc/final.c                   |  2 +-
+ gcc/fortran/trans-decl.c      |  2 +-
+ gcc/gimple-iterator.c         |  2 +-
+ gcc/gimplify.c                |  6 +++---
+ gcc/ipa-inline.c              |  4 ++--
+ gcc/ipa-prop.c                |  2 +-
+ gcc/ipa-pure-const.c          |  2 +-
+ gcc/ipa-split.c               |  4 ++--
+ gcc/ipa-struct-reorg.c        |  4 ++--
+ gcc/ipa-type-escape.c         |  2 +-
+ gcc/ipa.c                     |  2 +-
+ gcc/java/decl.c               |  2 +-
+ gcc/lto-cgraph.c              |  2 +-
+ gcc/lto-streamer-in.c         |  4 ++--
+ gcc/lto-symtab.c              |  2 +-
+ gcc/matrix-reorg.c            |  4 ++--
+ gcc/objc/objc-act.c           |  4 ++--
+ gcc/omp-low.c                 |  4 ++--
+ gcc/passes.c                  |  6 +++---
+ gcc/predict.c                 |  8 ++++----
+ gcc/tree-emutls.c             |  2 +-
+ gcc/tree-inline.c             | 10 +++++-----
+ gcc/tree-nested.c             |  8 ++++----
+ gcc/tree-optimize.c           |  6 +++---
+ gcc/tree-profile.c            |  2 +-
+ gcc/tree-sra.c                |  2 +-
+ gcc/tree-ssa-alias.c          |  4 ++--
+ gcc/tree-ssa-loop-ivopts.c    |  2 +-
+ gcc/varasm.c                  |  8 ++++----
+ 45 files changed, 114 insertions(+), 114 deletions(-)
+
+diff --git a/gcc/ada/gcc-interface/utils.c b/gcc/ada/gcc-interface/utils.c
+index eac87e0bbc9..2b296d38ba1 100644
+--- a/gcc/ada/gcc-interface/utils.c
++++ b/gcc/ada/gcc-interface/utils.c
+@@ -1898,7 +1898,7 @@ end_subprog_body (tree body)
+   else
+     /* Register this function with cgraph just far enough to get it
+        added to our parent's nested function list.  */
+-    (void) cgraph_node (fndecl);
++    (void) cgraph_create_node (fndecl);
+ }
+ 
+ tree
+diff --git a/gcc/c-decl.c b/gcc/c-decl.c
+index 44c0ec7728e..270a290e82d 100644
+--- a/gcc/c-decl.c
++++ b/gcc/c-decl.c
+@@ -8339,7 +8339,7 @@ finish_function (void)
+ 	  /* Register this function with cgraph just far enough to get it
+ 	    added to our parent's nested function list.  Handy, since the
+ 	    C front end doesn't have such a list.  */
+-	  (void) cgraph_node (fndecl);
++	  (void) cgraph_create_node (fndecl);
+ 	}
+     }
+ 
+diff --git a/gcc/c-family/c-gimplify.c b/gcc/c-family/c-gimplify.c
+index 769df7cd200..7bd0d5247da 100644
+--- a/gcc/c-family/c-gimplify.c
++++ b/gcc/c-family/c-gimplify.c
+@@ -98,7 +98,7 @@ c_genericize (tree fndecl)
+     }
+ 
+   /* Dump all nested functions now.  */
+-  cgn = cgraph_node (fndecl);
++  cgn = cgraph_create_node (fndecl);
+   for (cgn = cgn->nested; cgn ; cgn = cgn->next_nested)
+     c_genericize (cgn->decl);
+ }
+diff --git a/gcc/cgraph.c b/gcc/cgraph.c
+index 201e77dba86..3abd761d979 100644
+--- a/gcc/cgraph.c
++++ b/gcc/cgraph.c
+@@ -32,7 +32,7 @@ The callgraph:
+ 
+     The mapping from declarations to call-graph nodes is done using hash table
+     based on DECL_UID.  The call-graph nodes are created lazily using
+-    cgraph_node function when called for unknown declaration.
++    cgraph_create_node function when called for unknown declaration.
+ 
+     The callgraph at the moment does not represent all indirect calls or calls
+     from other compilation units.  Flag NEEDED is set for each node that may be
+@@ -466,7 +466,7 @@ cgraph_allocate_node (void)
+ /* Allocate new callgraph node and insert it into basic data structures.  */
+ 
+ static struct cgraph_node *
+-cgraph_create_node (void)
++cgraph_create_node_1 (void)
+ {
+   struct cgraph_node *node = cgraph_allocate_node ();
+ 
+@@ -488,7 +488,7 @@ cgraph_create_node (void)
+ /* Return cgraph node assigned to DECL.  Create new one when needed.  */
+ 
+ struct cgraph_node *
+-cgraph_node (tree decl)
++cgraph_create_node (tree decl)
+ {
+   struct cgraph_node key, *node, **slot;
+ 
+@@ -509,12 +509,12 @@ cgraph_node (tree decl)
+       return node;
+     }
+ 
+-  node = cgraph_create_node ();
++  node = cgraph_create_node_1 ();
+   node->decl = decl;
+   *slot = node;
+   if (DECL_CONTEXT (decl) && TREE_CODE (DECL_CONTEXT (decl)) == FUNCTION_DECL)
+     {
+-      node->origin = cgraph_node (DECL_CONTEXT (decl));
++      node->origin = cgraph_create_node (DECL_CONTEXT (decl));
+       node->next_nested = node->origin->nested;
+       node->origin->nested = node;
+     }
+@@ -859,7 +859,7 @@ cgraph_set_call_stmt (struct cgraph_edge *e, gimple new_stmt)
+     {
+       /* Constant propagation (and possibly also inlining?) can turn an
+ 	 indirect call into a direct one.  */
+-      struct cgraph_node *new_callee = cgraph_node (decl);
++      struct cgraph_node *new_callee = cgraph_create_node (decl);
+ 
+       cgraph_make_edge_direct (e, new_callee, 0);
+     }
+@@ -1303,7 +1303,7 @@ cgraph_update_edges_for_call_stmt_node (struct cgraph_node *node,
+ 
+       if (new_call)
+ 	{
+-	  ne = cgraph_create_edge (node, cgraph_node (new_call),
++	  ne = cgraph_create_edge (node, cgraph_create_node (new_call),
+ 				   new_stmt, count, frequency,
+ 				   loop_nest);
+ 	  gcc_assert (ne->inline_failed);
+@@ -1321,7 +1321,7 @@ cgraph_update_edges_for_call_stmt_node (struct cgraph_node *node,
+ void
+ cgraph_update_edges_for_call_stmt (gimple old_stmt, tree old_decl, gimple new_stmt)
+ {
+-  struct cgraph_node *orig = cgraph_node (cfun->decl);
++  struct cgraph_node *orig = cgraph_create_node (cfun->decl);
+   struct cgraph_node *node;
+ 
+   cgraph_update_edges_for_call_stmt_node (orig, old_stmt, old_decl, new_stmt);
+@@ -1776,7 +1776,7 @@ cgraph_local_info (tree decl)
+   struct cgraph_node *node;
+ 
+   gcc_assert (TREE_CODE (decl) == FUNCTION_DECL);
+-  node = cgraph_node (decl);
++  node = cgraph_create_node (decl);
+   return &node->local;
+ }
+ 
+@@ -1788,7 +1788,7 @@ cgraph_global_info (tree decl)
+   struct cgraph_node *node;
+ 
+   gcc_assert (TREE_CODE (decl) == FUNCTION_DECL && cgraph_global_info_ready);
+-  node = cgraph_node (decl);
++  node = cgraph_create_node (decl);
+   return &node->global;
+ }
+ 
+@@ -1800,7 +1800,7 @@ cgraph_rtl_info (tree decl)
+   struct cgraph_node *node;
+ 
+   gcc_assert (TREE_CODE (decl) == FUNCTION_DECL);
+-  node = cgraph_node (decl);
++  node = cgraph_create_node (decl);
+   if (decl != current_function_decl
+       && !TREE_ASM_WRITTEN (node->decl))
+     return NULL;
+@@ -2128,7 +2128,7 @@ cgraph_clone_edge (struct cgraph_edge *e, struct cgraph_node *n,
+ 
+       if (call_stmt && (decl = gimple_call_fndecl (call_stmt)))
+ 	{
+-	  struct cgraph_node *callee = cgraph_node (decl);
++	  struct cgraph_node *callee = cgraph_create_node (decl);
+ 	  new_edge = cgraph_create_edge (n, callee, call_stmt, count, freq,
+ 					 e->loop_nest + loop_nest);
+ 	}
+@@ -2182,7 +2182,7 @@ cgraph_clone_node (struct cgraph_node *n, tree decl, gcov_type count, int freq,
+ 		   int loop_nest, bool update_original,
+ 		   VEC(cgraph_edge_p,heap) *redirect_callers)
+ {
+-  struct cgraph_node *new_node = cgraph_create_node ();
++  struct cgraph_node *new_node = cgraph_create_node_1 ();
+   struct cgraph_edge *e;
+   gcov_type count_scale;
+   unsigned i;
+@@ -2359,7 +2359,7 @@ cgraph_create_virtual_clone (struct cgraph_node *old_node,
+       /* Record references of the future statement initializing the constant
+ 	 argument.  */
+       if (TREE_CODE (var) == FUNCTION_DECL)
+-	ipa_record_reference (new_node, NULL, cgraph_node (var),
++	ipa_record_reference (new_node, NULL, cgraph_create_node (var),
+ 			      NULL, IPA_REF_ADDR, NULL);
+       else if (TREE_CODE (var) == VAR_DECL)
+ 	ipa_record_reference (new_node, NULL, NULL, varpool_node (var),
+@@ -2468,7 +2468,7 @@ cgraph_add_new_function (tree fndecl, bool lowered)
+     {
+       case CGRAPH_STATE_CONSTRUCTION:
+ 	/* Just enqueue function to be processed at nearest occurrence.  */
+-	node = cgraph_node (fndecl);
++	node = cgraph_create_node (fndecl);
+ 	node->next_needed = cgraph_new_nodes;
+ 	if (lowered)
+ 	  node->lowered = true;
+@@ -2480,7 +2480,7 @@ cgraph_add_new_function (tree fndecl, bool lowered)
+       case CGRAPH_STATE_EXPANSION:
+ 	/* Bring the function into finalized state and enqueue for later
+ 	   analyzing and compilation.  */
+-	node = cgraph_node (fndecl);
++	node = cgraph_create_node (fndecl);
+ 	node->local.local = false;
+ 	node->local.finalized = true;
+ 	node->reachable = node->needed = true;
+diff --git a/gcc/cgraph.h b/gcc/cgraph.h
+index bad1bb987f4..2aa1cc6ca46 100644
+--- a/gcc/cgraph.h
++++ b/gcc/cgraph.h
+@@ -558,7 +558,7 @@ struct cgraph_edge *cgraph_create_indirect_edge (struct cgraph_node *, gimple,
+ struct cgraph_indirect_call_info *cgraph_allocate_init_indirect_info (void);
+ struct cgraph_node * cgraph_get_node (const_tree);
+ struct cgraph_node * cgraph_get_node_or_alias (const_tree);
+-struct cgraph_node * cgraph_node (tree);
++struct cgraph_node * cgraph_create_node (tree);
+ struct cgraph_node * cgraph_same_body_alias (struct cgraph_node *, tree, tree);
+ struct cgraph_node * cgraph_add_thunk (struct cgraph_node *, tree, tree, bool, HOST_WIDE_INT,
+ 				       HOST_WIDE_INT, tree, tree);
+diff --git a/gcc/cgraphbuild.c b/gcc/cgraphbuild.c
+index 6b8116a612a..0d946732cf8 100644
+--- a/gcc/cgraphbuild.c
++++ b/gcc/cgraphbuild.c
+@@ -68,9 +68,9 @@ record_reference (tree *tp, int *walk_subtrees, void *data)
+       if (TREE_CODE (decl) == FUNCTION_DECL)
+ 	{
+ 	  if (!ctx->only_vars)
+-	  cgraph_mark_address_taken_node (cgraph_node (decl));
++	  cgraph_mark_address_taken_node (cgraph_create_node (decl));
+ 	  ipa_record_reference (NULL, ctx->varpool_node,
+-			        cgraph_node (decl), NULL,
++			        cgraph_create_node (decl), NULL,
+ 			        IPA_REF_ADDR, NULL);
+ 	}
+ 
+@@ -143,7 +143,7 @@ record_eh_tables (struct cgraph_node *node, struct function *fun)
+ 
+   if (DECL_FUNCTION_PERSONALITY (node->decl))
+     ipa_record_reference (node, NULL,
+-			  cgraph_node (DECL_FUNCTION_PERSONALITY (node->decl)),
++			  cgraph_create_node (DECL_FUNCTION_PERSONALITY (node->decl)),
+ 			  NULL, IPA_REF_ADDR, NULL);
+ 
+   i = fun->eh->region_tree;
+@@ -244,7 +244,7 @@ mark_address (gimple stmt, tree addr, void *data)
+   addr = get_base_address (addr);
+   if (TREE_CODE (addr) == FUNCTION_DECL)
+     {
+-      struct cgraph_node *node = cgraph_node (addr);
++      struct cgraph_node *node = cgraph_create_node (addr);
+       cgraph_mark_address_taken_node (node);
+       ipa_record_reference ((struct cgraph_node *)data, NULL,
+ 			    node, NULL,
+@@ -279,7 +279,7 @@ mark_load (gimple stmt, tree t, void *data)
+     {
+       /* ??? This can happen on platforms with descriptors when these are
+ 	 directly manipulated in the code.  Pretend that it's an address.  */
+-      struct cgraph_node *node = cgraph_node (t);
++      struct cgraph_node *node = cgraph_create_node (t);
+       cgraph_mark_address_taken_node (node);
+       ipa_record_reference ((struct cgraph_node *)data, NULL,
+ 			    node, NULL,
+@@ -334,7 +334,7 @@ static unsigned int
+ build_cgraph_edges (void)
+ {
+   basic_block bb;
+-  struct cgraph_node *node = cgraph_node (current_function_decl);
++  struct cgraph_node *node = cgraph_create_node (current_function_decl);
+   struct pointer_set_t *visited_nodes = pointer_set_create ();
+   gimple_stmt_iterator gsi;
+   tree decl;
+@@ -355,7 +355,7 @@ build_cgraph_edges (void)
+ 							 bb);
+ 	      decl = gimple_call_fndecl (stmt);
+ 	      if (decl)
+-		cgraph_create_edge (node, cgraph_node (decl), stmt,
++		cgraph_create_edge (node, cgraph_create_node (decl), stmt,
+ 				    bb->count, freq,
+ 				    bb->loop_depth);
+ 	      else
+@@ -370,18 +370,18 @@ build_cgraph_edges (void)
+ 	      && gimple_omp_parallel_child_fn (stmt))
+ 	    {
+ 	      tree fn = gimple_omp_parallel_child_fn (stmt);
+-	      ipa_record_reference (node, NULL, cgraph_node (fn),
++	      ipa_record_reference (node, NULL, cgraph_create_node (fn),
+ 				    NULL, IPA_REF_ADDR, stmt);
+ 	    }
+ 	  if (gimple_code (stmt) == GIMPLE_OMP_TASK)
+ 	    {
+ 	      tree fn = gimple_omp_task_child_fn (stmt);
+ 	      if (fn)
+-		ipa_record_reference (node, NULL, cgraph_node (fn),
++		ipa_record_reference (node, NULL, cgraph_create_node (fn),
+ 				      NULL, IPA_REF_ADDR, stmt);
+ 	      fn = gimple_omp_task_copy_fn (stmt);
+ 	      if (fn)
+-		ipa_record_reference (node, NULL, cgraph_node (fn),
++		ipa_record_reference (node, NULL, cgraph_create_node (fn),
+ 				      NULL, IPA_REF_ADDR, stmt);
+ 	    }
+ 	}
+@@ -445,7 +445,7 @@ unsigned int
+ rebuild_cgraph_edges (void)
+ {
+   basic_block bb;
+-  struct cgraph_node *node = cgraph_node (current_function_decl);
++  struct cgraph_node *node = cgraph_create_node (current_function_decl);
+   gimple_stmt_iterator gsi;
+ 
+   cgraph_node_remove_callees (node);
+@@ -466,7 +466,7 @@ rebuild_cgraph_edges (void)
+ 							 bb);
+ 	      decl = gimple_call_fndecl (stmt);
+ 	      if (decl)
+-		cgraph_create_edge (node, cgraph_node (decl), stmt,
++		cgraph_create_edge (node, cgraph_create_node (decl), stmt,
+ 				    bb->count, freq,
+ 				    bb->loop_depth);
+ 	      else
+@@ -496,7 +496,7 @@ void
+ cgraph_rebuild_references (void)
+ {
+   basic_block bb;
+-  struct cgraph_node *node = cgraph_node (current_function_decl);
++  struct cgraph_node *node = cgraph_create_node (current_function_decl);
+   gimple_stmt_iterator gsi;
+ 
+   ipa_remove_all_references (&node->ref_list);
+@@ -543,7 +543,7 @@ struct gimple_opt_pass pass_rebuild_cgraph_edges =
+ static unsigned int
+ remove_cgraph_callee_edges (void)
+ {
+-  cgraph_node_remove_callees (cgraph_node (current_function_decl));
++  cgraph_node_remove_callees (cgraph_create_node (current_function_decl));
+   return 0;
+ }
+ 
+diff --git a/gcc/cgraphunit.c b/gcc/cgraphunit.c
+index 7ed75be48dd..1cd77109cef 100644
+--- a/gcc/cgraphunit.c
++++ b/gcc/cgraphunit.c
+@@ -344,7 +344,7 @@ cgraph_lower_function (struct cgraph_node *node)
+ void
+ cgraph_finalize_function (tree decl, bool nested)
+ {
+-  struct cgraph_node *node = cgraph_node (decl);
++  struct cgraph_node *node = cgraph_create_node (decl);
+ 
+   if (node->local.finalized)
+     cgraph_reset_node (node);
+@@ -391,7 +391,7 @@ cgraph_finalize_function (tree decl, bool nested)
+ void
+ cgraph_mark_if_needed (tree decl)
+ {
+-  struct cgraph_node *node = cgraph_node (decl);
++  struct cgraph_node *node = cgraph_create_node (decl);
+   if (node->local.finalized && cgraph_decide_is_function_needed (node, decl))
+     cgraph_mark_needed_node (node);
+ }
+@@ -668,7 +668,7 @@ verify_cgraph_node (struct cgraph_node *node)
+ 				     && cgraph_get_node (decl)
+ 				     && (e->callee->former_clone_of
+ 					 != cgraph_get_node (decl)->decl)
+-				     && !clone_of_p (cgraph_node (decl),
++				     && !clone_of_p (cgraph_create_node (decl),
+ 						     e->callee))
+ 			      {
+ 				error ("edge points to wrong declaration:");
+@@ -999,7 +999,7 @@ cgraph_analyze_functions (void)
+          abstract function declaration will be later needed to output debug info.  */
+       if (DECL_ABSTRACT_ORIGIN (decl))
+ 	{
+-	  struct cgraph_node *origin_node = cgraph_node (DECL_ABSTRACT_ORIGIN (decl));
++	  struct cgraph_node *origin_node = cgraph_create_node (DECL_ABSTRACT_ORIGIN (decl));
+ 	  origin_node->abstract_and_needed = true;
+ 	}
+ 
+@@ -1762,7 +1762,7 @@ cgraph_preserve_function_body_p (tree decl)
+ 
+   gcc_assert (cgraph_global_info_ready);
+   /* Look if there is any clone around.  */
+-  node = cgraph_node (decl);
++  node = cgraph_create_node (decl);
+   if (node->clones)
+     return true;
+   return false;
+@@ -1984,7 +1984,7 @@ cgraph_copy_node_for_versioning (struct cgraph_node *old_version,
+ 
+    gcc_assert (old_version);
+ 
+-   new_version = cgraph_node (new_decl);
++   new_version = cgraph_create_node (new_decl);
+ 
+    new_version->analyzed = true;
+    new_version->local = old_version->local;
+@@ -2102,7 +2102,7 @@ save_inline_function_body (struct cgraph_node *node)
+ {
+   struct cgraph_node *first_clone, *n;
+ 
+-  gcc_assert (node == cgraph_node (node->decl));
++  gcc_assert (node == cgraph_create_node (node->decl));
+ 
+   cgraph_lower_function (node);
+ 
+@@ -2110,7 +2110,7 @@ save_inline_function_body (struct cgraph_node *node)
+ 
+   first_clone->decl = copy_node (node->decl);
+   cgraph_insert_node_to_hashtable (first_clone);
+-  gcc_assert (first_clone == cgraph_node (first_clone->decl));
++  gcc_assert (first_clone == cgraph_create_node (first_clone->decl));
+   if (first_clone->next_sibling_clone)
+     {
+       for (n = first_clone->next_sibling_clone; n->next_sibling_clone; n = n->next_sibling_clone)
+diff --git a/gcc/config/i386/i386.c b/gcc/config/i386/i386.c
+index c43d3ed57f0..28e760a473e 100644
+--- a/gcc/config/i386/i386.c
++++ b/gcc/config/i386/i386.c
+@@ -9267,7 +9267,7 @@ ix86_compute_frame_layout (struct ix86_frame *frame)
+            && cfun->machine->use_fast_prologue_epilogue_nregs != frame->nregs)
+     {
+       int count = frame->nregs;
+-      struct cgraph_node *node = cgraph_node (current_function_decl);
++      struct cgraph_node *node = cgraph_create_node (current_function_decl);
+ 
+       cfun->machine->use_fast_prologue_epilogue_nregs = count;
+ 
+diff --git a/gcc/config/rs6000/rs6000.c b/gcc/config/rs6000/rs6000.c
+index 730e23445bf..73883cb896b 100644
+--- a/gcc/config/rs6000/rs6000.c
++++ b/gcc/config/rs6000/rs6000.c
+@@ -8026,7 +8026,7 @@ call_ABI_of_interest (tree fndecl)
+ 	return true;
+ 
+       /* Interesting functions that we are emitting in this object file.  */
+-      c_node = cgraph_node (fndecl);
++      c_node = cgraph_create_node (fndecl);
+       return !cgraph_only_called_directly_p (c_node);
+     }
+   return false;
+diff --git a/gcc/cp/class.c b/gcc/cp/class.c
+index c6fbbabdba3..0df2787ff0c 100644
+--- a/gcc/cp/class.c
++++ b/gcc/cp/class.c
+@@ -8464,7 +8464,7 @@ cp_fold_obj_type_ref (tree ref, tree known_type)
+ 				  DECL_VINDEX (fndecl)));
+ #endif
+ 
+-  cgraph_node (fndecl)->local.vtable_method = true;
++  cgraph_create_node (fndecl)->local.vtable_method = true;
+ 
+   return build_address (fndecl);
+ }
+diff --git a/gcc/cp/decl2.c b/gcc/cp/decl2.c
+index 4c55f4fc381..6f46eab11df 100644
+--- a/gcc/cp/decl2.c
++++ b/gcc/cp/decl2.c
+@@ -3373,11 +3373,11 @@ cxx_callgraph_analyze_expr (tree *tp, int *walk_subtrees ATTRIBUTE_UNUSED)
+     {
+     case PTRMEM_CST:
+       if (TYPE_PTRMEMFUNC_P (TREE_TYPE (t)))
+-	cgraph_mark_address_taken_node (cgraph_node (PTRMEM_CST_MEMBER (t)));
++	cgraph_mark_address_taken_node (cgraph_create_node (PTRMEM_CST_MEMBER (t)));
+       break;
+     case BASELINK:
+       if (TREE_CODE (BASELINK_FUNCTIONS (t)) == FUNCTION_DECL)
+-	cgraph_mark_address_taken_node (cgraph_node (BASELINK_FUNCTIONS (t)));
++	cgraph_mark_address_taken_node (cgraph_create_node (BASELINK_FUNCTIONS (t)));
+       break;
+     case VAR_DECL:
+       if (DECL_CONTEXT (t)
+@@ -3890,7 +3890,7 @@ cp_write_global_declarations (void)
+ 	  if (!DECL_EXTERNAL (decl)
+ 	      && decl_needed_p (decl)
+ 	      && !TREE_ASM_WRITTEN (decl)
+-	      && !cgraph_node (decl)->local.finalized)
++	      && !cgraph_create_node (decl)->local.finalized)
+ 	    {
+ 	      /* We will output the function; no longer consider it in this
+ 		 loop.  */
+diff --git a/gcc/cp/mangle.c b/gcc/cp/mangle.c
+index 37412968f2c..44849c20b4f 100644
+--- a/gcc/cp/mangle.c
++++ b/gcc/cp/mangle.c
+@@ -3172,7 +3172,7 @@ mangle_decl (const tree decl)
+       if (vague_linkage_p (decl))
+ 	DECL_WEAK (alias) = 1;
+       if (TREE_CODE (decl) == FUNCTION_DECL)
+-	cgraph_same_body_alias (cgraph_node (decl), alias, decl);
++	cgraph_same_body_alias (cgraph_create_node (decl), alias, decl);
+       else
+ 	varpool_extra_name_alias (alias, decl);
+ #endif
+diff --git a/gcc/cp/method.c b/gcc/cp/method.c
+index 177948a4438..57e68067328 100644
+--- a/gcc/cp/method.c
++++ b/gcc/cp/method.c
+@@ -259,7 +259,7 @@ make_alias_for_thunk (tree function)
+ 
+   if (!flag_syntax_only)
+     {
+-      struct cgraph_node *aliasn = cgraph_same_body_alias (cgraph_node (function),
++      struct cgraph_node *aliasn = cgraph_same_body_alias (cgraph_create_node (function),
+ 							   alias, function);
+       DECL_ASSEMBLER_NAME (function);
+       gcc_assert (aliasn != NULL);
+@@ -380,7 +380,7 @@ use_thunk (tree thunk_fndecl, bool emit_p)
+   a = nreverse (t);
+   DECL_ARGUMENTS (thunk_fndecl) = a;
+   TREE_ASM_WRITTEN (thunk_fndecl) = 1;
+-  cgraph_add_thunk (cgraph_node (function), thunk_fndecl, function,
++  cgraph_add_thunk (cgraph_create_node (function), thunk_fndecl, function,
+ 		    this_adjusting, fixed_offset, virtual_value,
+ 		    virtual_offset, alias);
+ 
+diff --git a/gcc/cp/optimize.c b/gcc/cp/optimize.c
+index 2ce9838a74e..f33b43c6065 100644
+--- a/gcc/cp/optimize.c
++++ b/gcc/cp/optimize.c
+@@ -309,7 +309,7 @@ maybe_clone_body (tree fn)
+ 	  && (!DECL_ONE_ONLY (fns[0])
+ 	      || (HAVE_COMDAT_GROUP
+ 		  && DECL_WEAK (fns[0])))
+-	  && cgraph_same_body_alias (cgraph_node (fns[0]), clone, fns[0]))
++	  && cgraph_same_body_alias (cgraph_create_node (fns[0]), clone, fns[0]))
+ 	{
+ 	  alias = true;
+ 	  if (DECL_ONE_ONLY (fns[0]))
+@@ -423,8 +423,8 @@ maybe_clone_body (tree fn)
+ 	  /* If *[CD][12]* dtors go into the *[CD]5* comdat group and dtor is
+ 	     virtual, it goes into the same comdat group as well.  */
+ 	  DECL_COMDAT_GROUP (fns[2]) = comdat_group;
+-	  base_dtor_node = cgraph_node (fns[0]);
+-	  deleting_dtor_node = cgraph_node (fns[2]);
++	  base_dtor_node = cgraph_create_node (fns[0]);
++	  deleting_dtor_node = cgraph_create_node (fns[2]);
+ 	  gcc_assert (base_dtor_node->same_comdat_group == NULL);
+ 	  gcc_assert (deleting_dtor_node->same_comdat_group == NULL);
+ 	  base_dtor_node->same_comdat_group = deleting_dtor_node;
+diff --git a/gcc/cp/semantics.c b/gcc/cp/semantics.c
+index d979f19e468..ee56b282cc0 100644
+--- a/gcc/cp/semantics.c
++++ b/gcc/cp/semantics.c
+@@ -8604,8 +8604,8 @@ maybe_add_lambda_conv_op (tree type)
+       /* Put the thunk in the same comdat group as the call op.  */
+       struct cgraph_node *callop_node, *thunk_node;
+       DECL_COMDAT_GROUP (statfn) = cxx_comdat_group (callop);
+-      callop_node = cgraph_node (callop);
+-      thunk_node = cgraph_node (statfn);
++      callop_node = cgraph_create_node (callop);
++      thunk_node = cgraph_create_node (statfn);
+       gcc_assert (callop_node->same_comdat_group == NULL);
+       gcc_assert (thunk_node->same_comdat_group == NULL);
+       callop_node->same_comdat_group = thunk_node;
+diff --git a/gcc/except.c b/gcc/except.c
+index 251a5501462..fc7b1bf4857 100644
+--- a/gcc/except.c
++++ b/gcc/except.c
+@@ -1879,11 +1879,11 @@ set_nothrow_function_flags (void)
+ 	  }
+       }
+   if (crtl->nothrow
+-      && (cgraph_function_body_availability (cgraph_node
++      && (cgraph_function_body_availability (cgraph_create_node
+ 					     (current_function_decl))
+           >= AVAIL_AVAILABLE))
+     {
+-      struct cgraph_node *node = cgraph_node (current_function_decl);
++      struct cgraph_node *node = cgraph_create_node (current_function_decl);
+       struct cgraph_edge *e;
+       for (e = node->callers; e; e = e->next_caller)
+         e->can_throw_external = false;
+diff --git a/gcc/final.c b/gcc/final.c
+index 7d3ff141149..36463e35c78 100644
+--- a/gcc/final.c
++++ b/gcc/final.c
+@@ -4385,7 +4385,7 @@ rest_of_clean_state (void)
+       else
+ 	{
+ 	  const char *aname;
+-	  struct cgraph_node *node = cgraph_node (current_function_decl);
++	  struct cgraph_node *node = cgraph_create_node (current_function_decl);
+ 
+ 	  aname = (IDENTIFIER_POINTER
+ 		   (DECL_ASSEMBLER_NAME (current_function_decl)));
+diff --git a/gcc/fortran/trans-decl.c b/gcc/fortran/trans-decl.c
+index 5b5e7881c4d..c20740e5f3e 100644
+--- a/gcc/fortran/trans-decl.c
++++ b/gcc/fortran/trans-decl.c
+@@ -4947,7 +4947,7 @@ gfc_generate_function_code (gfc_namespace * ns)
+   if (decl_function_context (fndecl))
+     /* Register this function with cgraph just far enough to get it
+        added to our parent's nested function list.  */
+-    (void) cgraph_node (fndecl);
++    (void) cgraph_create_node (fndecl);
+   else
+     cgraph_finalize_function (fndecl, true);
+ 
+diff --git a/gcc/gimple-iterator.c b/gcc/gimple-iterator.c
+index d654f2fa28d..d9fa2c840dc 100644
+--- a/gcc/gimple-iterator.c
++++ b/gcc/gimple-iterator.c
+@@ -84,7 +84,7 @@ update_call_edge_frequencies (gimple_seq_node first, basic_block bb)
+ 	   to avoid calling them if we never see any calls.  */
+ 	if (cfun_node == NULL)
+ 	  {
+-	    cfun_node = cgraph_node (current_function_decl);
++	    cfun_node = cgraph_create_node (current_function_decl);
+ 	    bb_freq = (compute_call_stmt_bb_frequency
+ 		       (current_function_decl, bb));
+ 	  }
+diff --git a/gcc/gimplify.c b/gcc/gimplify.c
+index 1af6de61bc2..3a3721f0979 100644
+--- a/gcc/gimplify.c
++++ b/gcc/gimplify.c
+@@ -959,7 +959,7 @@ copy_if_shared (tree *tp)
+ static void
+ unshare_body (tree *body_p, tree fndecl)
+ {
+-  struct cgraph_node *cgn = cgraph_node (fndecl);
++  struct cgraph_node *cgn = cgraph_create_node (fndecl);
+ 
+   copy_if_shared (body_p);
+ 
+@@ -1000,7 +1000,7 @@ unmark_visited (tree *tp)
+ static void
+ unvisit_body (tree *body_p, tree fndecl)
+ {
+-  struct cgraph_node *cgn = cgraph_node (fndecl);
++  struct cgraph_node *cgn = cgraph_create_node (fndecl);
+ 
+   unmark_visited (body_p);
+ 
+@@ -7720,7 +7720,7 @@ gimplify_body (tree *body_p, tree fndecl, bool do_parms)
+   unshare_body (body_p, fndecl);
+   unvisit_body (body_p, fndecl);
+ 
+-  if (cgraph_node (fndecl)->origin)
++  if (cgraph_create_node (fndecl)->origin)
+     nonlocal_vlas = pointer_set_create ();
+ 
+   /* Make sure input_location isn't set to something weird.  */
+diff --git a/gcc/ipa-inline.c b/gcc/ipa-inline.c
+index 3fc796adfec..a7c6073689e 100644
+--- a/gcc/ipa-inline.c
++++ b/gcc/ipa-inline.c
+@@ -1741,7 +1741,7 @@ static GTY ((length ("nnodes"))) struct cgraph_node **order;
+ static unsigned int
+ cgraph_early_inlining (void)
+ {
+-  struct cgraph_node *node = cgraph_node (current_function_decl);
++  struct cgraph_node *node = cgraph_create_node (current_function_decl);
+   unsigned int todo = 0;
+   int iterations = 0;
+ 
+@@ -2023,7 +2023,7 @@ compute_inline_parameters (struct cgraph_node *node)
+ static unsigned int
+ compute_inline_parameters_for_current (void)
+ {
+-  compute_inline_parameters (cgraph_node (current_function_decl));
++  compute_inline_parameters (cgraph_create_node (current_function_decl));
+   return 0;
+ }
+ 
+diff --git a/gcc/ipa-prop.c b/gcc/ipa-prop.c
+index fd3f87a6dff..dfb7d07c717 100644
+--- a/gcc/ipa-prop.c
++++ b/gcc/ipa-prop.c
+@@ -1647,7 +1647,7 @@ ipa_make_edge_direct_to_target (struct cgraph_edge *ie, tree target, tree delta)
+     target = TREE_OPERAND (target, 0);
+   if (TREE_CODE (target) != FUNCTION_DECL)
+     return NULL;
+-  callee = cgraph_node (target);
++  callee = cgraph_create_node (target);
+   if (!callee)
+     return NULL;
+   ipa_check_create_node_params ();
+diff --git a/gcc/ipa-pure-const.c b/gcc/ipa-pure-const.c
+index b9476e64372..45c5e61df10 100644
+--- a/gcc/ipa-pure-const.c
++++ b/gcc/ipa-pure-const.c
+@@ -1563,7 +1563,7 @@ local_pure_const (void)
+   bool skip;
+   struct cgraph_node *node;
+ 
+-  node = cgraph_node (current_function_decl);
++  node = cgraph_create_node (current_function_decl);
+   skip = skip_function_for_local_pure_const (node);
+   if (!warn_suggest_attribute_const
+       && !warn_suggest_attribute_pure
+diff --git a/gcc/ipa-split.c b/gcc/ipa-split.c
+index c71954db09e..37c683bdd69 100644
+--- a/gcc/ipa-split.c
++++ b/gcc/ipa-split.c
+@@ -1039,7 +1039,7 @@ split_function (struct split_point *split_point)
+   bitmap args_to_skip = BITMAP_ALLOC (NULL);
+   tree parm;
+   int num = 0;
+-  struct cgraph_node *node, *cur_node = cgraph_node (current_function_decl);
++  struct cgraph_node *node, *cur_node = cgraph_create_node (current_function_decl);
+   basic_block return_bb = find_return_bb ();
+   basic_block call_bb;
+   gimple_stmt_iterator gsi;
+@@ -1349,7 +1349,7 @@ execute_split_functions (void)
+   basic_block bb;
+   int overall_time = 0, overall_size = 0;
+   int todo = 0;
+-  struct cgraph_node *node = cgraph_node (current_function_decl);
++  struct cgraph_node *node = cgraph_create_node (current_function_decl);
+ 
+   if (flags_from_decl_or_type (current_function_decl) & ECF_NORETURN)
+     {
+diff --git a/gcc/ipa-struct-reorg.c b/gcc/ipa-struct-reorg.c
+index 7ab321eee47..478226f3da9 100644
+--- a/gcc/ipa-struct-reorg.c
++++ b/gcc/ipa-struct-reorg.c
+@@ -1735,8 +1735,8 @@ update_cgraph_with_malloc_call (gimple malloc_stmt, tree context)
+ 
+   malloc_fn_decl = gimple_call_fndecl (malloc_stmt);
+ 
+-  src = cgraph_node (context);
+-  dest = cgraph_node (malloc_fn_decl);
++  src = cgraph_create_node (context);
++  dest = cgraph_create_node (malloc_fn_decl);
+   cgraph_create_edge (src, dest, malloc_stmt,
+ 		      gimple_bb (malloc_stmt)->count,
+ 		      compute_call_stmt_bb_frequency
+diff --git a/gcc/ipa-type-escape.c b/gcc/ipa-type-escape.c
+index 1ecf68ef2a7..d25dc2278c7 100644
+--- a/gcc/ipa-type-escape.c
++++ b/gcc/ipa-type-escape.c
+@@ -1328,7 +1328,7 @@ check_call (gimple call)
+     {
+       tree arg_type;
+       tree last_arg_type = NULL;
+-      callee = cgraph_node(callee_t);
++      callee = cgraph_create_node (callee_t);
+       avail = cgraph_function_body_availability (callee);
+ 
+       /* Check that there are no implicit casts in the passing of
+diff --git a/gcc/ipa.c b/gcc/ipa.c
+index ade8706e621..697d7246273 100644
+--- a/gcc/ipa.c
++++ b/gcc/ipa.c
+@@ -1624,7 +1624,7 @@ record_cdtor_fn (struct cgraph_node *node)
+     VEC_safe_push (tree, heap, static_ctors, node->decl);
+   if (DECL_STATIC_DESTRUCTOR (node->decl))
+     VEC_safe_push (tree, heap, static_dtors, node->decl);
+-  node = cgraph_node (node->decl);
++  node = cgraph_create_node (node->decl);
+   node->local.disregard_inline_limits = 1;
+ }
+ 
+diff --git a/gcc/java/decl.c b/gcc/java/decl.c
+index a17b826696b..994f0440de7 100644
+--- a/gcc/java/decl.c
++++ b/gcc/java/decl.c
+@@ -1928,7 +1928,7 @@ java_mark_decl_local (tree decl)
+ #ifdef ENABLE_CHECKING
+   /* Double check that we didn't pass the function to the callgraph early.  */
+   if (TREE_CODE (decl) == FUNCTION_DECL)
+-    gcc_assert (!cgraph_node (decl)->local.finalized);
++    gcc_assert (!cgraph_create_node (decl)->local.finalized);
+ #endif
+   gcc_assert (!DECL_RTL_SET_P (decl));
+ }
+diff --git a/gcc/lto-cgraph.c b/gcc/lto-cgraph.c
+index cc126169c68..01511eefde0 100644
+--- a/gcc/lto-cgraph.c
++++ b/gcc/lto-cgraph.c
+@@ -1043,7 +1043,7 @@ input_node (struct lto_file_decl_data *file_data,
+ 				0, CGRAPH_FREQ_BASE, 0, false, NULL);
+     }
+   else
+-    node = cgraph_node (fn_decl);
++    node = cgraph_create_node (fn_decl);
+ 
+   node->count = lto_input_sleb128 (ib);
+   node->count_materialization_scale = lto_input_sleb128 (ib);
+diff --git a/gcc/lto-streamer-in.c b/gcc/lto-streamer-in.c
+index 5ef06abfb54..a5c492fccc3 100644
+--- a/gcc/lto-streamer-in.c
++++ b/gcc/lto-streamer-in.c
+@@ -1257,7 +1257,7 @@ input_function (tree fn_decl, struct data_in *data_in,
+   DECL_INITIAL (fn_decl) = lto_input_tree (ib, data_in);
+   gcc_assert (DECL_INITIAL (fn_decl));
+   DECL_SAVED_TREE (fn_decl) = NULL_TREE;
+-  node = cgraph_node (fn_decl);
++  node = cgraph_create_node (fn_decl);
+ 
+   /* Read all the basic blocks.  */
+   tag = input_record_start (ib);
+@@ -1398,7 +1398,7 @@ lto_read_body (struct lto_file_decl_data *file_data, tree fn_decl,
+     {
+       struct function *fn = DECL_STRUCT_FUNCTION (fn_decl);
+       struct lto_in_decl_state *decl_state;
+-      struct cgraph_node *node = cgraph_node (fn_decl);
++      struct cgraph_node *node = cgraph_create_node (fn_decl);
+ 
+       push_cfun (fn);
+       init_tree_ssa (fn);
+diff --git a/gcc/lto-symtab.c b/gcc/lto-symtab.c
+index b02aabab14d..28a3d8b7bb8 100644
+--- a/gcc/lto-symtab.c
++++ b/gcc/lto-symtab.c
+@@ -799,7 +799,7 @@ lto_symtab_merge_cgraph_nodes_1 (void **slot, void *data ATTRIBUTE_UNUSED)
+ 	     previously unused.  Create the node.  */
+ 	  if (!prevailing->node)
+ 	    {
+-	      prevailing->node = cgraph_node (prevailing->decl);
++	      prevailing->node = cgraph_create_node (prevailing->decl);
+ 	      prevailing->node->alias = true;
+ 	    }
+ 	  lto_cgraph_replace_node (e->node, prevailing->node);
+diff --git a/gcc/matrix-reorg.c b/gcc/matrix-reorg.c
+index c3031430e83..82ce653fd72 100644
+--- a/gcc/matrix-reorg.c
++++ b/gcc/matrix-reorg.c
+@@ -2169,7 +2169,7 @@ transform_allocation_sites (void **slot, void *data ATTRIBUTE_UNUSED)
+   update_ssa (TODO_update_ssa);
+   /* Replace the malloc size argument in the malloc of level 0 to be
+      the size of all the dimensions.  */
+-  c_node = cgraph_node (mi->allocation_function_decl);
++  c_node = cgraph_create_node (mi->allocation_function_decl);
+   old_size_0 = gimple_call_arg (call_stmt_0, 0);
+   tmp = force_gimple_operand_gsi (&gsi, mi->dimension_size[0], true,
+ 				  NULL, true, GSI_SAME_STMT);
+@@ -2218,7 +2218,7 @@ transform_allocation_sites (void **slot, void *data ATTRIBUTE_UNUSED)
+       if (!mi->free_stmts[i].stmt)
+ 	continue;
+ 
+-      c_node = cgraph_node (mi->free_stmts[i].func);
++      c_node = cgraph_create_node (mi->free_stmts[i].func);
+       gcc_assert (is_gimple_call (mi->free_stmts[i].stmt));
+       e = cgraph_edge (c_node, mi->free_stmts[i].stmt);
+       gcc_assert (e);
+diff --git a/gcc/objc/objc-act.c b/gcc/objc/objc-act.c
+index cca60a07198..930b9cf0f31 100644
+--- a/gcc/objc/objc-act.c
++++ b/gcc/objc/objc-act.c
+@@ -4518,14 +4518,14 @@ mark_referenced_methods (void)
+       chain = CLASS_CLS_METHODS (impent->imp_context);
+       while (chain)
+ 	{
+-	  cgraph_mark_needed_node (cgraph_node (METHOD_DEFINITION (chain)));
++	  cgraph_mark_needed_node (cgraph_create_node (METHOD_DEFINITION (chain)));
+ 	  chain = DECL_CHAIN (chain);
+ 	}
+ 
+       chain = CLASS_NST_METHODS (impent->imp_context);
+       while (chain)
+ 	{
+-	  cgraph_mark_needed_node (cgraph_node (METHOD_DEFINITION (chain)));
++	  cgraph_mark_needed_node (cgraph_create_node (METHOD_DEFINITION (chain)));
+ 	  chain = DECL_CHAIN (chain);
+ 	}
+     }
+diff --git a/gcc/omp-low.c b/gcc/omp-low.c
+index bb0017a7671..90da372607a 100644
+--- a/gcc/omp-low.c
++++ b/gcc/omp-low.c
+@@ -1211,7 +1211,7 @@ new_omp_context (gimple stmt, omp_context *outer_ctx)
+     {
+       ctx->cb.src_fn = current_function_decl;
+       ctx->cb.dst_fn = current_function_decl;
+-      ctx->cb.src_node = cgraph_node (current_function_decl);
++      ctx->cb.src_node = cgraph_create_node (current_function_decl);
+       ctx->cb.dst_node = ctx->cb.src_node;
+       ctx->cb.src_cfun = cfun;
+       ctx->cb.copy_decl = omp_copy_decl;
+@@ -6272,7 +6272,7 @@ create_task_copyfn (gimple task_stmt, omp_context *ctx)
+       memset (&tcctx, '\0', sizeof (tcctx));
+       tcctx.cb.src_fn = ctx->cb.src_fn;
+       tcctx.cb.dst_fn = child_fn;
+-      tcctx.cb.src_node = cgraph_node (tcctx.cb.src_fn);
++      tcctx.cb.src_node = cgraph_create_node (tcctx.cb.src_fn);
+       tcctx.cb.dst_node = tcctx.cb.src_node;
+       tcctx.cb.src_cfun = ctx->cb.src_cfun;
+       tcctx.cb.copy_decl = task_copyfn_copy_decl;
+diff --git a/gcc/passes.c b/gcc/passes.c
+index a33a6afa643..eff3a36dd4a 100644
+--- a/gcc/passes.c
++++ b/gcc/passes.c
+@@ -1344,7 +1344,7 @@ pass_init_dump_file (struct opt_pass *pass)
+       if (dump_file && current_function_decl)
+ 	{
+ 	  const char *dname, *aname;
+-	  struct cgraph_node *node = cgraph_node (current_function_decl);
++	  struct cgraph_node *node = cgraph_create_node (current_function_decl);
+ 	  dname = lang_hooks.decl_printable_name (current_function_decl, 2);
+ 	  aname = (IDENTIFIER_POINTER
+ 		   (DECL_ASSEMBLER_NAME (current_function_decl)));
+@@ -1476,7 +1476,7 @@ execute_all_ipa_transforms (void)
+   struct cgraph_node *node;
+   if (!cfun)
+     return;
+-  node = cgraph_node (current_function_decl);
++  node = cgraph_create_node (current_function_decl);
+ 
+   if (node->ipa_transforms_to_apply)
+     {
+@@ -2030,7 +2030,7 @@ bool
+ function_called_by_processed_nodes_p (void)
+ {
+   struct cgraph_edge *e;
+-  for (e = cgraph_node (current_function_decl)->callers; e; e = e->next_caller)
++  for (e = cgraph_create_node (current_function_decl)->callers; e; e = e->next_caller)
+     {
+       if (e->caller->decl == current_function_decl)
+         continue;
+diff --git a/gcc/predict.c b/gcc/predict.c
+index 18fda083da3..34e2d893422 100644
+--- a/gcc/predict.c
++++ b/gcc/predict.c
+@@ -113,7 +113,7 @@ static const struct predictor_info predictor_info[]= {
+ static inline bool
+ maybe_hot_frequency_p (int freq)
+ {
+-  struct cgraph_node *node = cgraph_node (current_function_decl);
++  struct cgraph_node *node = cgraph_create_node (current_function_decl);
+   if (!profile_info || !flag_branch_probabilities)
+     {
+       if (node->frequency == NODE_FREQUENCY_UNLIKELY_EXECUTED)
+@@ -203,7 +203,7 @@ probably_never_executed_bb_p (const_basic_block bb)
+   if (profile_info && flag_branch_probabilities)
+     return ((bb->count + profile_info->runs / 2) / profile_info->runs) == 0;
+   if ((!profile_info || !flag_branch_probabilities)
+-      && cgraph_node (current_function_decl)->frequency == NODE_FREQUENCY_UNLIKELY_EXECUTED)
++      && cgraph_create_node (current_function_decl)->frequency == NODE_FREQUENCY_UNLIKELY_EXECUTED)
+     return true;
+   return false;
+ }
+@@ -215,7 +215,7 @@ optimize_function_for_size_p (struct function *fun)
+ {
+   return (optimize_size
+ 	  || (fun && fun->decl
+-	      && (cgraph_node (fun->decl)->frequency
++	      && (cgraph_create_node (fun->decl)->frequency
+ 		  == NODE_FREQUENCY_UNLIKELY_EXECUTED)));
+ }
+ 
+@@ -2242,7 +2242,7 @@ void
+ compute_function_frequency (void)
+ {
+   basic_block bb;
+-  struct cgraph_node *node = cgraph_node (current_function_decl);
++  struct cgraph_node *node = cgraph_create_node (current_function_decl);
+   if (DECL_STATIC_CONSTRUCTOR (current_function_decl)
+       || MAIN_NAME_P (DECL_NAME (current_function_decl)))
+     node->only_called_at_startup = true;
+diff --git a/gcc/tree-emutls.c b/gcc/tree-emutls.c
+index 899888dfb10..62de6d5ce2a 100644
+--- a/gcc/tree-emutls.c
++++ b/gcc/tree-emutls.c
+@@ -619,7 +619,7 @@ lower_emutls_function_body (struct cgraph_node *node)
+ 
+   d.cfun_node = node;
+   d.builtin_decl = built_in_decls[BUILT_IN_EMUTLS_GET_ADDRESS];
+-  d.builtin_node = cgraph_node (d.builtin_decl);
++  d.builtin_node = cgraph_create_node (d.builtin_decl);
+ 
+   FOR_EACH_BB (d.bb)
+     {
+diff --git a/gcc/tree-inline.c b/gcc/tree-inline.c
+index ab9195b958e..2b11c107c8d 100644
+--- a/gcc/tree-inline.c
++++ b/gcc/tree-inline.c
+@@ -1730,7 +1730,7 @@ copy_bb (copy_body_data *id, basic_block bb, int frequency_scale,
+ 		       && id->transform_call_graph_edges == CB_CGE_MOVE_CLONES))
+ 		  && (fn = gimple_call_fndecl (stmt)) != NULL)
+ 		{
+-		  struct cgraph_node *dest = cgraph_node (fn);
++		  struct cgraph_node *dest = cgraph_create_node (fn);
+ 
+ 		  /* We have missing edge in the callgraph.  This can happen
+ 		     when previous inlining turned an indirect call into a
+@@ -3482,7 +3482,7 @@ estimate_num_insns (gimple stmt, eni_weights *weights)
+ 
+ 	/* Do not special case builtins where we see the body.
+ 	   This just confuse inliner.  */
+-	if (!decl || cgraph_node (decl)->analyzed)
++	if (!decl || cgraph_create_node (decl)->analyzed)
+ 	  ;
+ 	/* For buitins that are likely expanded to nothing or
+ 	   inlined do not account operand costs.  */
+@@ -4219,7 +4219,7 @@ optimize_inline_calls (tree fn)
+   /* Clear out ID.  */
+   memset (&id, 0, sizeof (id));
+ 
+-  id.src_node = id.dst_node = cgraph_node (fn);
++  id.src_node = id.dst_node = cgraph_create_node (fn);
+   id.dst_fn = fn;
+   /* Or any functions that aren't finished yet.  */
+   if (current_function_decl)
+@@ -5064,8 +5064,8 @@ tree_function_versioning (tree old_decl, tree new_decl,
+ 	      && TREE_CODE (new_decl) == FUNCTION_DECL);
+   DECL_POSSIBLY_INLINED (old_decl) = 1;
+ 
+-  old_version_node = cgraph_node (old_decl);
+-  new_version_node = cgraph_node (new_decl);
++  old_version_node = cgraph_create_node (old_decl);
++  new_version_node = cgraph_create_node (new_decl);
+ 
+   /* Output the inlining info for this abstract function, since it has been
+      inlined.  If we don't do this now, we can lose the information about the
+diff --git a/gcc/tree-nested.c b/gcc/tree-nested.c
+index f33a0ca4e77..69639667b71 100644
+--- a/gcc/tree-nested.c
++++ b/gcc/tree-nested.c
+@@ -693,7 +693,7 @@ walk_all_functions (walk_stmt_fn callback_stmt, walk_tree_fn callback_op,
+ static bool
+ check_for_nested_with_variably_modified (tree fndecl, tree orig_fndecl)
+ {
+-  struct cgraph_node *cgn = cgraph_node (fndecl);
++  struct cgraph_node *cgn = cgraph_create_node (fndecl);
+   tree arg;
+ 
+   for (cgn = cgn->nested; cgn ; cgn = cgn->next_nested)
+@@ -2541,13 +2541,13 @@ finalize_nesting_tree (struct nesting_info *root)
+ static void
+ unnest_nesting_tree_1 (struct nesting_info *root)
+ {
+-  struct cgraph_node *node = cgraph_node (root->context);
++  struct cgraph_node *node = cgraph_create_node (root->context);
+ 
+   /* For nested functions update the cgraph to reflect unnesting.
+      We also delay finalizing of these functions up to this point.  */
+   if (node->origin)
+     {
+-       cgraph_unnest_node (cgraph_node (root->context));
++       cgraph_unnest_node (cgraph_create_node (root->context));
+        cgraph_finalize_function (root->context, true);
+     }
+ }
+@@ -2601,7 +2601,7 @@ lower_nested_functions (tree fndecl)
+   struct nesting_info *root;
+ 
+   /* If there are no nested functions, there's nothing to do.  */
+-  cgn = cgraph_node (fndecl);
++  cgn = cgraph_create_node (fndecl);
+   if (!cgn->nested)
+     return;
+ 
+diff --git a/gcc/tree-optimize.c b/gcc/tree-optimize.c
+index facbd93a4a2..d7466df79bf 100644
+--- a/gcc/tree-optimize.c
++++ b/gcc/tree-optimize.c
+@@ -247,12 +247,12 @@ execute_fixup_cfg (void)
+   edge_iterator ei;
+ 
+   if (ENTRY_BLOCK_PTR->count)
+-    count_scale = (cgraph_node (current_function_decl)->count * REG_BR_PROB_BASE
++    count_scale = (cgraph_create_node (current_function_decl)->count * REG_BR_PROB_BASE
+     		   + ENTRY_BLOCK_PTR->count / 2) / ENTRY_BLOCK_PTR->count;
+   else
+     count_scale = REG_BR_PROB_BASE;
+ 
+-  ENTRY_BLOCK_PTR->count = cgraph_node (current_function_decl)->count;
++  ENTRY_BLOCK_PTR->count = cgraph_create_node (current_function_decl)->count;
+   EXIT_BLOCK_PTR->count = (EXIT_BLOCK_PTR->count * count_scale
+   			   + REG_BR_PROB_BASE / 2) / REG_BR_PROB_BASE;
+ 
+@@ -457,7 +457,7 @@ tree_rest_of_compilation (tree fndecl)
+ 
+   gimple_set_body (fndecl, NULL);
+   if (DECL_STRUCT_FUNCTION (fndecl) == 0
+-      && !cgraph_node (fndecl)->origin)
++      && !cgraph_create_node (fndecl)->origin)
+     {
+       /* Stop pointing to the local nodes about to be freed.
+ 	 But DECL_INITIAL must remain nonzero so we know this
+diff --git a/gcc/tree-profile.c b/gcc/tree-profile.c
+index c1c0577c2ef..9918a2e7ecf 100644
+--- a/gcc/tree-profile.c
++++ b/gcc/tree-profile.c
+@@ -346,7 +346,7 @@ gimple_gen_ic_profiler (histogram_value value, unsigned tag, unsigned base)
+ void
+ gimple_gen_ic_func_profiler (void)
+ {
+-  struct cgraph_node * c_node = cgraph_node (current_function_decl);
++  struct cgraph_node * c_node = cgraph_create_node (current_function_decl);
+   gimple_stmt_iterator gsi;
+   gimple stmt1, stmt2;
+   tree tree_uid, cur_func, counter_ptr, ptr_var, void0;
+diff --git a/gcc/tree-sra.c b/gcc/tree-sra.c
+index 1c135292c14..18407bffd17 100644
+--- a/gcc/tree-sra.c
++++ b/gcc/tree-sra.c
+@@ -4624,7 +4624,7 @@ ipa_sra_preliminary_function_checks (struct cgraph_node *node)
+ static unsigned int
+ ipa_early_sra (void)
+ {
+-  struct cgraph_node *node = cgraph_node (current_function_decl);
++  struct cgraph_node *node = cgraph_create_node (current_function_decl);
+   ipa_parm_adjustment_vec adjustments;
+   int ret = 0;
+ 
+diff --git a/gcc/tree-ssa-alias.c b/gcc/tree-ssa-alias.c
+index 2a3a0dea7d6..a7deb565609 100644
+--- a/gcc/tree-ssa-alias.c
++++ b/gcc/tree-ssa-alias.c
+@@ -1308,7 +1308,7 @@ ref_maybe_used_by_call_p_1 (gimple call, ao_ref *ref)
+ 
+       if (callee != NULL_TREE
+ 	  && (not_read
+-	        = ipa_reference_get_not_read_global (cgraph_node (callee)))
++	        = ipa_reference_get_not_read_global (cgraph_create_node (callee)))
+ 	  && bitmap_bit_p (not_read, DECL_UID (base)))
+ 	goto process_args;
+     }
+@@ -1576,7 +1576,7 @@ call_may_clobber_ref_p_1 (gimple call, ao_ref *ref)
+       bitmap not_written;
+ 
+       if ((not_written
+-	     = ipa_reference_get_not_written_global (cgraph_node (callee)))
++	     = ipa_reference_get_not_written_global (cgraph_create_node (callee)))
+ 	  && bitmap_bit_p (not_written, DECL_UID (base)))
+ 	return false;
+     }
+diff --git a/gcc/tree-ssa-loop-ivopts.c b/gcc/tree-ssa-loop-ivopts.c
+index 479b46fb8dc..df368c4c600 100644
+--- a/gcc/tree-ssa-loop-ivopts.c
++++ b/gcc/tree-ssa-loop-ivopts.c
+@@ -2849,7 +2849,7 @@ computation_cost (tree expr, bool speed)
+   unsigned cost;
+   /* Avoid using hard regs in ways which may be unsupported.  */
+   int regno = LAST_VIRTUAL_REGISTER + 1;
+-  struct cgraph_node *node = cgraph_node (current_function_decl);
++  struct cgraph_node *node = cgraph_create_node (current_function_decl);
+   enum node_frequency real_frequency = node->frequency;
+ 
+   node->frequency = NODE_FREQUENCY_NORMAL;
+diff --git a/gcc/varasm.c b/gcc/varasm.c
+index 977ca40a088..6db017493ce 100644
+--- a/gcc/varasm.c
++++ b/gcc/varasm.c
+@@ -606,7 +606,7 @@ function_section_1 (tree decl, bool force_cold)
+ 
+   if (decl)
+     {
+-      struct cgraph_node *node = cgraph_node (decl);
++      struct cgraph_node *node = cgraph_create_node (decl);
+ 
+       freq = node->frequency;
+       startup = node->only_called_at_startup;
+@@ -1611,7 +1611,7 @@ assemble_start_function (tree decl, const char *fnname)
+       /* Calls to function_section rely on first_function_block_is_cold
+ 	 being accurate.  */
+       first_function_block_is_cold
+-	 = (cgraph_node (current_function_decl)->frequency
++	 = (cgraph_create_node (current_function_decl)->frequency
+ 	    == NODE_FREQUENCY_UNLIKELY_EXECUTED);
+     }
+ 
+@@ -2252,7 +2252,7 @@ mark_decl_referenced (tree decl)
+ 	 If we know a method will be emitted in other TU and no new
+ 	 functions can be marked reachable, just use the external
+ 	 definition.  */
+-      struct cgraph_node *node = cgraph_node (decl);
++      struct cgraph_node *node = cgraph_create_node (decl);
+       if (!DECL_EXTERNAL (decl)
+ 	  && (!node->local.vtable_method || !cgraph_global_info_ready
+ 	      || !node->local.finalized))
+@@ -5876,7 +5876,7 @@ assemble_alias (tree decl, tree target)
+ 
+   /* Allow aliases to aliases.  */
+   if (TREE_CODE (decl) == FUNCTION_DECL)
+-    cgraph_node (decl)->alias = true;
++    cgraph_create_node (decl)->alias = true;
+   else
+     varpool_node (decl)->alias = true;
+ 
+-- 
