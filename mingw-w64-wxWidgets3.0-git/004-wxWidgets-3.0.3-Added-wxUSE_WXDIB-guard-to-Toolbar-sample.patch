@@ -1,0 +1,23 @@
+From d7b4e5ac745f232958e7332362431f11cb0995ef Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sun, 7 May 2017 23:58:08 -0400
+Subject: [PATCH 7/7] Add wxUSE_WXDIB guard to Toolbar sample
+
+---
+ samples/toolbar/toolbar.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/samples/toolbar/toolbar.cpp b/samples/toolbar/toolbar.cpp
+index 0e313d771a..97ac98bce1 100644
+--- a/samples/toolbar/toolbar.cpp
++++ b/samples/toolbar/toolbar.cpp
+@@ -36,7 +36,7 @@
+ 
+ // define this to use XPMs everywhere (by default, BMPs are used under Win)
+ // BMPs use less space, but aren't compiled into the executable on other platforms
+-#ifdef __WINDOWS__
++#if defined(__WINDOWS__) && wxUSE_WXDIB
+     #define USE_XPM_BITMAPS 0
+ #else
+     #define USE_XPM_BITMAPS 1
+-- 

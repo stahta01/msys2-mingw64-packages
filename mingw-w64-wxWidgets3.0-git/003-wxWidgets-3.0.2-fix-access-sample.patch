@@ -1,0 +1,23 @@
+From 099f8e7fbe8706f63bd851fb5f01c562280bc02f Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Thu, 6 Feb 2020 21:07:21 -0500
+Subject: Fix access sample build
+
+---
+ samples/access/accesstest.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/samples/access/accesstest.cpp b/samples/access/accesstest.cpp
+index 83b85fae24..c127df4554 100644
+--- a/samples/access/accesstest.cpp
++++ b/samples/access/accesstest.cpp
+@@ -637,7 +637,7 @@ wxAccStatus SplitterWindowAccessible::HitTest(const wxPoint& pt, int* childId, w
+         if (splitter->IsSplit())
+         {
+             wxPoint clientPt = splitter->ScreenToClient(pt);
+-            if (splitter->SashHitTest(clientPt.x, clientPt.y, 1))
++            if (splitter->SashHitTest(clientPt.x, clientPt.y))
+             {
+                 // We're over the sash
+                 *childId = 2;
+-- 

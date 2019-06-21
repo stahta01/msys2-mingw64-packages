@@ -1,0 +1,130 @@
+From b64919672f20f829ca84561e280556b64f40ff40 Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sat, 6 May 2017 17:22:55 -0400
+Subject: [PATCH 4/7] Configure changes for wxGTK/win32
+
+Have configure under windows skip linking to X11.
+Have configure check for "USE_WIN32" instead of for "wxUSE_MSW".
+  wxUSE_FSWATCHER
+  wxUSE_SNGLINST_CHECKER
+  wxUSE_SOCKETS
+---
+ configure    | 12 +++++++-----
+ configure.in | 22 +++++++++++-----------
+ 2 files changed, 18 insertions(+), 16 deletions(-)
+
+diff --git a/configure b/configure
+index 3fa466a989..c7ba9cd67d 100755
+--- a/configure
++++ b/configure
+@@ -24487,7 +24487,9 @@ rm -f core conftest.err conftest.$ac_objext \
+                 if test -z "$wx_cv_lib_gtk"; then
+                                         wx_cv_lib_gtk=none
+                 else
+-                                        GTK_LIBS="$GTK_LIBS -lX11"
++                    if test "$USE_WIN32" != 1 ; then
++                                                GTK_LIBS="$GTK_LIBS -lX11"
++                    fi
+ 
+                                                             wx_cv_cflags_gtk=$GTK_CFLAGS
+                     wx_cv_libs_gtk=$GTK_LIBS
+@@ -31076,7 +31078,7 @@ else
+ $as_echo "$as_me: WARNING: wxGetDiskSpace() function won't work without statfs()" >&2;}
+ fi
+ 
+-if test "$wxUSE_SNGLINST_CHECKER" = "yes"; then
++if test "$wxUSE_SNGLINST_CHECKER" = "yes" -a "$USE_WIN32" != 1 ; then
+     for ac_func in fcntl flock
+ do :
+   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+@@ -33564,7 +33566,7 @@ fi
+ 
+ 
+ if test "$wxUSE_FSWATCHER" = "yes"; then
+-                if test "$wxUSE_MSW" != "1"; then
++                if test "$USE_WIN32" != 1; then
+         if test "$wxUSE_UNIX" = "yes"; then
+             for ac_header in sys/inotify.h
+ do :
+@@ -35773,7 +35775,7 @@ done
+ 
+ 
+ if test "$wxUSE_SOCKETS" = "yes"; then
+-        if test "$TOOLKIT" != "MSW"; then
++        if test "$USE_WIN32" != 1 ; then
+                 ac_fn_c_check_func "$LINENO" "socket" "ac_cv_func_socket"
+ if test "x$ac_cv_func_socket" = xyes; then :
+ 
+@@ -35836,7 +35838,7 @@ fi
+ fi
+ 
+ if test "$wxUSE_SOCKETS" = "yes" ; then
+-                if test "$TOOLKIT" != "MSW"; then
++        if test "$USE_WIN32" != 1 ; then
+                                         { $as_echo "$as_me:${as_lineno-$LINENO}: checking what is the type of the third argument of getsockname" >&5
+ $as_echo_n "checking what is the type of the third argument of getsockname... " >&6; }
+ if ${wx_cv_type_getsockname3+:} false; then :
+diff --git a/configure.in b/configure.in
+index 632fd700b3..22c148bb73 100644
+--- a/configure.in
++++ b/configure.in
+@@ -2884,8 +2884,10 @@ if test "$wxUSE_GUI" = "yes"; then
+                     dnl looks better in AC_MSG_RESULT
+                     wx_cv_lib_gtk=none
+                 else
+-                    dnl we use symbols from X11 directly so we should link with it
+-                    GTK_LIBS="$GTK_LIBS -lX11"
++                    if test "$USE_WIN32" != 1 ; then
++                        dnl we use symbols from X11 directly so we should link with it
++                        GTK_LIBS="$GTK_LIBS -lX11"
++                    fi
+ 
+                     dnl we need to cache GTK_CFLAGS and GTK_LIBS for the
+                     dnl subsequent runs
+@@ -4541,7 +4543,7 @@ fi
+ 
+ dnl check for fcntl() or at least flock() needed by Unix implementation of
+ dnl wxSingleInstanceChecker
+-if test "$wxUSE_SNGLINST_CHECKER" = "yes"; then
++if test "$wxUSE_SNGLINST_CHECKER" = "yes" -a "$USE_WIN32" != 1 ; then
+     AC_CHECK_FUNCS(fcntl flock, break)
+ 
+     if test "$ac_cv_func_fcntl" != "yes" -a "$ac_cv_func_flock" != "yes"; then
+@@ -5496,10 +5498,10 @@ dnl File system watcher checks
+ dnl ---------------------------------------------------------------------------
+ 
+ if test "$wxUSE_FSWATCHER" = "yes"; then
+-    dnl wxFileSystemWatcher is always available under MSW but we need either
++    dnl wxFileSystemWatcher is always available under Windows but we need either
+     dnl inotify or kqueue support in the system for it under Unix (this
+     dnl includes OS X which does have kqueue but no other platforms)
+-    if test "$wxUSE_MSW" != "1"; then
++    if test "$USE_WIN32" != 1; then
+         if test "$wxUSE_UNIX" = "yes"; then
+             AC_CHECK_HEADERS(sys/inotify.h,,, [AC_INCLUDES_DEFAULT()])
+             if test "$ac_cv_header_sys_inotify_h" = "yes"; then
+@@ -6136,8 +6138,8 @@ dnl wxSocket
+ dnl ------------------------------------------------------------------------
+ 
+ if test "$wxUSE_SOCKETS" = "yes"; then
+-    dnl under MSW we always have sockets
+-    if test "$TOOLKIT" != "MSW"; then
++    dnl under Windows we always have sockets
++    if test "$USE_WIN32" != 1 ; then
+         dnl under Solaris and OS/2, socket functions live in -lsocket
+         AC_CHECK_FUNC(socket,,
+             [
+@@ -6156,10 +6158,8 @@ if test "$wxUSE_SOCKETS" = "yes"; then
+ fi
+ 
+ if test "$wxUSE_SOCKETS" = "yes" ; then
+-    dnl this test may be appropriate if building under cygwin
+-    dnl right now I'm assuming it also uses the winsock stuff
+-    dnl like mingw does..  -- RL
+-    if test "$TOOLKIT" != "MSW"; then
++    dnl under Windows we do not use getsockname
++    if test "$USE_WIN32" != 1 ; then
+         dnl determine the type of third argument for getsockname
+         dnl This test needs to be done in C++ mode since gsocket.cpp now
+         dnl is C++ code and pointer cast that are possible even without
+-- 

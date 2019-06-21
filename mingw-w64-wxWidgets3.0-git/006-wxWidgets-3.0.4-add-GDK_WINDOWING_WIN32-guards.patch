@@ -1,0 +1,29 @@
+From 685b091d41164daf8470d341e799c09680db95bd Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sat, 6 May 2017 19:33:35 -0400
+Subject: [PATCH 5/7] Add GDK_WINDOWING_WIN32 guard to "gtk/display.cpp"
+
+---
+ src/gtk/display.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/gtk/display.cpp b/src/gtk/display.cpp
+index 7c376e1874..c8ca98782f 100644
+--- a/src/gtk/display.cpp
++++ b/src/gtk/display.cpp
+@@ -20,6 +20,8 @@
+ #endif
+ #include "wx/gtk/private/gtk2-compat.h"
+ 
++#if !defined(GDK_WINDOWING_WIN32)
++
+ GtkWidget* wxGetRootWindow();
+ 
+ //-----------------------------------------------------------------------------
+@@ -239,3 +241,5 @@ wxDisplayFactory* wxDisplay::CreateFactory()
+     return new wxDisplayFactoryGTK;
+ }
+ #endif // wxUSE_DISPLAY
++
++#endif // !defined(GDK_WINDOWING_WIN32)
+-- 

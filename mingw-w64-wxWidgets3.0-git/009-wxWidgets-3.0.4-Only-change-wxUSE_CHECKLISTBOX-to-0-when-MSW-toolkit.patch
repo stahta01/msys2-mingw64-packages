@@ -1,0 +1,43 @@
+From 2300b345f17971ea6bfeeb471d8147baf07f5f2b Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sat, 6 May 2017 16:56:05 -0400
+Subject: [PATCH 3/7] Only change wxUSE_CHECKLISTBOX to 0 when MSW toolkit
+
+---
+ include/wx/msw/chkconf.h | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/include/wx/msw/chkconf.h b/include/wx/msw/chkconf.h
+index c13adf7c5c..31cc50c1e3 100644
+--- a/include/wx/msw/chkconf.h
++++ b/include/wx/msw/chkconf.h
+@@ -217,11 +217,6 @@
+ #   define wxUSE_DRAG_AND_DROP 0
+ #endif
+ 
+-#if !wxUSE_OWNER_DRAWN && !defined(__WXUNIVERSAL__)
+-#   undef wxUSE_CHECKLISTBOX
+-#   define wxUSE_CHECKLISTBOX 0
+-#endif
+-
+ #if wxUSE_SPINCTRL
+ #   if !wxUSE_SPINBTN
+ #       ifdef wxABORT_ON_CONFIG_ERROR
+@@ -233,6 +228,16 @@
+ #   endif
+ #endif
+ 
++/* wxMSW-specific checks: notice that this file is also used with wxUniv
++   and can even be used with wxGTK, when building it under Windows.
++ */
++#if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
++#   if !wxUSE_OWNER_DRAWN
++#       undef wxUSE_CHECKLISTBOX
++#       define wxUSE_CHECKLISTBOX 0
++#   endif
++#endif
++
+ /*
+    Win64-specific checks.
+  */
+-- 
