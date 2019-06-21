@@ -1,0 +1,18 @@
+--- a/configure
++++ b/configure
+@@ -47460,13 +47460,13 @@ fi
+ if test "x$INTELCC" = "xyes" ; then
+                                         CWARNINGS="-Wall -wd810,869,981,1418,1572,1684"
+ elif test "$GCC" = yes ; then
+-    CWARNINGS="-Wall -Wundef"
++    CWARNINGS="-Wall -Wundef -Wno-unused-local-typedefs"
+ fi
+ 
+ if test "x$INTELCXX" = "xyes" ; then
+                                                             CXXWARNINGS="-Wall -wd279,383,444,810,869,981,1418,1419"
+ elif test "$GXX" = yes ; then
+-        CXXWARNINGS="-Wall -Wundef -Wno-ctor-dtor-privacy"
++        CXXWARNINGS="-Wall -Wundef -Wno-ctor-dtor-privacy -Wno-unused-local-typedefs"
+ fi
+ 
+ 

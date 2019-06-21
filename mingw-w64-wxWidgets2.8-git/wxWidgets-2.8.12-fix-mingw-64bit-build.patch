@@ -1,0 +1,559 @@
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/configure wxWidgets-2.8.12.patched/configure
+--- wxWidgets-2.8.12/configure	2011-03-22 19:59:37 +0800
++++ wxWidgets-2.8.12.patched/configure	2011-04-07 11:33:02 +0800
+@@ -27805,10 +27805,10 @@
+ 
+             case "${host}" in
+ 	x86_64-*-mingw32* )
+-                        LIBS="$LIBS -lwinspool -lwinmm -lshell32 -lcomctl32 -lcomdlg32 -lwctl3d32 -ladvapi32 -lwsock32 -lgdi32"
++                        LIBS="$LIBS -lwinspool -lwinmm -lshell32 -lcomctl32 -lcomdlg32 -ladvapi32 -lws2_32 -lgdi32"
+         ;;
+         * )
+-            LIBS="$LIBS -lwinspool -lwinmm -lshell32 -lcomctl32 -lcomdlg32 -lctl3d32 -ladvapi32 -lwsock32 -lgdi32"
++            LIBS="$LIBS -lwinspool -lwinmm -lshell32 -lcomctl32 -lcomdlg32 -ladvapi32 -lws2_32 -lgdi32"
+         ;;
+     esac
+     if test "$wxUSE_ACCESSIBILITY" = "yes" ; then
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/include/wx/msw/menuitem.h wxWidgets-2.8.12.patched/include/wx/msw/menuitem.h
+--- wxWidgets-2.8.12/include/wx/msw/menuitem.h	2011-03-22 20:00:56 +0800
++++ wxWidgets-2.8.12.patched/include/wx/msw/menuitem.h	2011-04-07 12:35:30 +0800
+@@ -54,7 +54,7 @@
+     // the id for a popup menu is really its menu handle (as required by
+     // ::AppendMenu() API), so this function will return either the id or the
+     // menu handle depending on what we're
+-    int GetRealId() const;
++    WXWPARAM GetRealId() const;
+ 
+     // mark item as belonging to the given radio group
+     void SetAsRadioGroupStart();
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/aui/framemanager.cpp wxWidgets-2.8.12.patched/src/aui/framemanager.cpp
+--- wxWidgets-2.8.12/src/aui/framemanager.cpp	2011-03-22 19:59:45 +0800
++++ wxWidgets-2.8.12.patched/src/aui/framemanager.cpp	2011-04-07 11:43:23 +0800
+@@ -974,7 +974,7 @@
+     if (pinfo.name.empty() || already_exists)
+     {
+         pinfo.name.Printf(wxT("%08lx%08x%08x%08lx"),
+-             ((unsigned long)pinfo.window) & 0xffffffff,
++             ((unsigned long)(intptr_t)pinfo.window) & 0xffffffff,
+              (unsigned int)time(NULL),
+ #ifdef __WXWINCE__
+              (unsigned int)GetTickCount(),
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/common/debugrpt.cpp wxWidgets-2.8.12.patched/src/common/debugrpt.cpp
+--- wxWidgets-2.8.12/src/common/debugrpt.cpp	2011-03-22 19:59:40 +0800
++++ wxWidgets-2.8.12.patched/src/common/debugrpt.cpp	2011-04-07 11:43:57 +0800
+@@ -54,6 +54,8 @@
+     #include "wx/zipstrm.h"
+ #endif // wxUSE_ZIPSTREAM
+ 
++#include <direct.h>
++
+ WX_CHECK_BUILD_OPTIONS("wxQA")
+ 
+ // ----------------------------------------------------------------------------
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/common/filefn.cpp wxWidgets-2.8.12.patched/src/common/filefn.cpp
+--- wxWidgets-2.8.12/src/common/filefn.cpp	2011-03-22 19:59:41 +0800
++++ wxWidgets-2.8.12.patched/src/common/filefn.cpp	2011-04-07 11:44:23 +0800
+@@ -70,6 +70,8 @@
+         #endif
+     #endif // __GNUWIN32__
+ 
++    #include <direct.h>
++
+     // io.h is needed for _get_osfhandle()
+     // Already included by filefn.h for many Windows compilers
+     #if defined __MWERKS__ || defined __CYGWIN__
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/common/utilscmn.cpp wxWidgets-2.8.12.patched/src/common/utilscmn.cpp
+--- wxWidgets-2.8.12/src/common/utilscmn.cpp	2011-03-22 19:59:42 +0800
++++ wxWidgets-2.8.12.patched/src/common/utilscmn.cpp	2011-04-07 13:34:01 +0800
+@@ -822,7 +822,7 @@
+     //hInstApp member is only valid if the function fails, in which case it
+     //receives one of the following error values, which are less than or
+     //equal to 32.
+-    const int nResult = (int) sei.hInstApp;
++    const intptr_t nResult = (intptr_t)sei.hInstApp;
+ 
+     // Firefox returns file not found for some reason, so make an exception
+     // for it
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/dcprint.cpp wxWidgets-2.8.12.patched/src/msw/dcprint.cpp
+--- wxWidgets-2.8.12/src/msw/dcprint.cpp	2011-03-22 20:00:53 +0800
++++ wxWidgets-2.8.12.patched/src/msw/dcprint.cpp	2011-04-07 12:01:29 +0800
+@@ -319,7 +319,7 @@
+     }
+ 
+ 
+-    HGLOBAL hDevMode = (HGLOBAL)(DWORD) data->GetDevMode();
++    HGLOBAL hDevMode = (HGLOBAL) data->GetDevMode();
+ 
+     DEVMODE *lpDevMode = hDevMode ? (DEVMODE *)::GlobalLock(hDevMode) : NULL;
+ 
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/frame.cpp wxWidgets-2.8.12.patched/src/msw/frame.cpp
+--- wxWidgets-2.8.12/src/msw/frame.cpp	2011-03-22 20:00:53 +0800
++++ wxWidgets-2.8.12.patched/src/msw/frame.cpp	2011-04-07 12:11:13 +0800
+@@ -855,7 +855,7 @@
+             HDC hdc = ::BeginPaint(GetHwnd(), &ps);
+ 
+             // Erase background before painting or we get white background
+-            MSWDefWindowProc(WM_ICONERASEBKGND, (WORD)(LONG)ps.hdc, 0L);
++            MSWDefWindowProc(WM_ICONERASEBKGND, (intptr_t)ps.hdc, 0L);
+ 
+             if ( hIcon )
+             {
+@@ -1085,7 +1085,7 @@
+                 const wxIcon& icon = GetIcon();
+                 HICON hIcon = icon.Ok() ? GetHiconOf(icon)
+                                         : (HICON)GetDefaultIcon();
+-                rc = (long)hIcon;
++                rc = (intptr_t)hIcon; // WXLRESULT is int64 in win64
+                 processed = rc != 0;
+             }
+             break;
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/helpwin.cpp wxWidgets-2.8.12.patched/src/msw/helpwin.cpp
+--- wxWidgets-2.8.12/src/msw/helpwin.cpp	2011-03-22 20:00:54 +0800
++++ wxWidgets-2.8.12.patched/src/msw/helpwin.cpp	2011-04-07 12:15:22 +0800
+@@ -98,7 +98,7 @@
+ 
+     wxString str = GetValidFilename(m_helpFile);
+ 
+-    return (WinHelp(GetSuitableHWND(this), (const wxChar*) str, HELP_PARTIALKEY, (DWORD)(const wxChar*) k) != 0);
++    return (WinHelp(GetSuitableHWND(this), (const wxChar*) str, HELP_PARTIALKEY, (intptr_t)(const wxChar*) k) != 0);
+ }
+ 
+ // Can't close the help window explicitly in WinHelp
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/mdi.cpp wxWidgets-2.8.12.patched/src/msw/mdi.cpp
+--- wxWidgets-2.8.12/src/msw/mdi.cpp	2011-03-22 20:00:54 +0800
++++ wxWidgets-2.8.12.patched/src/msw/mdi.cpp	2011-04-07 12:22:05 +0800
+@@ -763,7 +763,7 @@
+   wxWindowCreationHook hook(this);
+ 
+   m_hWnd = (WXHWND)::SendMessage(GetWinHwnd(parent->GetClientWindow()),
+-                                 WM_MDICREATE, 0, (LONG)(LPSTR)&mcs);
++                                 WM_MDICREATE, 0, (intptr_t)&mcs);
+ 
+   if ( !m_hWnd )
+   {
+@@ -1433,14 +1433,14 @@
+             {
+                 success = true;
+                 ::InsertMenu(hmenu, i, MF_BYPOSITION | MF_POPUP | MF_STRING,
+-                             (UINT)subMenu, _("&Window"));
++                             (intptr_t)subMenu, _("&Window"));
+                 break;
+             }
+         }
+ 
+         if ( !success )
+         {
+-            ::AppendMenu(hmenu, MF_POPUP, (UINT)subMenu, _("&Window"));
++            ::AppendMenu(hmenu, MF_POPUP, (intptr_t)subMenu, _("&Window"));
+         }
+     }
+ 
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/menu.cpp wxWidgets-2.8.12.patched/src/msw/menu.cpp
+--- wxWidgets-2.8.12/src/msw/menu.cpp	2011-03-22 20:00:54 +0800
++++ wxWidgets-2.8.12.patched/src/msw/menu.cpp	2011-04-07 13:37:06 +0800
+@@ -370,19 +370,19 @@
+ 
+     // id is the numeric id for normal menu items and HMENU for submenus as
+     // required by ::AppendMenu() API
+-    UINT id;
++    UINT_PTR id;
+     wxMenu *submenu = pItem->GetSubMenu();
+     if ( submenu != NULL ) {
+         wxASSERT_MSG( submenu->GetHMenu(), wxT("invalid submenu") );
+ 
+         submenu->SetParent(this);
+ 
+-        id = (UINT)submenu->GetHMenu();
++        id = (intptr_t)submenu->GetHMenu();
+ 
+         flags |= MF_POPUP;
+     }
+     else {
+-        id = pItem->GetId();
++        id = pItem->GetRealId();
+     }
+ 
+ 
+@@ -963,7 +963,7 @@
+         for ( i = 0, it = m_menus.begin(); i < count; i++, it++ )
+         {
+             if ( !::AppendMenu((HMENU)m_hMenu, MF_POPUP | MF_STRING,
+-                               (UINT)(*it)->GetHMenu(),
++                               (intptr_t)(*it)->GetHMenu(),
+                                m_titles[i]) )
+             {
+                 wxLogLastError(wxT("AppendMenu"));
+@@ -1035,7 +1035,7 @@
+ 
+     int mswpos = MSWPositionForWxMenu(GetMenu(pos),pos);
+ 
+-    UINT id;
++    UINT_PTR id;
+     UINT flagsOld = ::GetMenuState((HMENU)m_hMenu, mswpos, MF_BYPOSITION);
+     if ( flagsOld == 0xFFFFFFFF )
+     {
+@@ -1048,7 +1048,7 @@
+     {
+         // HIBYTE contains the number of items in the submenu in this case
+         flagsOld &= 0xff;
+-        id = (UINT)::GetSubMenu((HMENU)m_hMenu, mswpos);
++        id = (intptr_t)::GetSubMenu((HMENU)m_hMenu, mswpos);
+     }
+     else
+     {
+@@ -1124,7 +1124,7 @@
+ 
+         if ( !::InsertMenu(GetHmenu(), (UINT)mswpos,
+                            MF_BYPOSITION | MF_POPUP | MF_STRING,
+-                           (UINT)GetHmenuOf(menu), title) )
++                           (intptr_t)GetHmenuOf(menu), title) )
+         {
+             wxLogLastError(wxT("InsertMenu"));
+         }
+@@ -1191,7 +1191,7 @@
+ #else
+         if ( !::InsertMenu(GetHmenu(), mswpos,
+                            MF_BYPOSITION | MF_POPUP | MF_STRING,
+-                           (UINT)GetHmenuOf(menu), title) )
++                           (intptr_t)GetHmenuOf(menu), title) )
+         {
+             wxLogLastError(wxT("InsertMenu"));
+         }
+@@ -1250,7 +1250,7 @@
+         }
+ #else
+         if ( !::AppendMenu(GetHmenu(), MF_POPUP | MF_STRING,
+-                           (UINT)submenu, title) )
++                           (intptr_t)submenu, title) )
+         {
+             wxLogLastError(wxT("AppendMenu"));
+         }
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/menuitem.cpp wxWidgets-2.8.12.patched/src/msw/menuitem.cpp
+--- wxWidgets-2.8.12/src/msw/menuitem.cpp	2011-03-22 20:00:54 +0800
++++ wxWidgets-2.8.12.patched/src/msw/menuitem.cpp	2011-04-07 12:37:02 +0800
+@@ -186,9 +186,14 @@
+ // ----
+ 
+ // return the id for calling Win32 API functions
+-int wxMenuItem::GetRealId() const
++WXWPARAM wxMenuItem::GetRealId() const
+ {
+-    return m_subMenu ? (int)m_subMenu->GetHMenu() : GetId();
++    // we must use ids in unsigned short range with Windows functions, if we
++    // pass ids > USHRT_MAX to them they get very confused (e.g. start
++    // generating WM_COMMAND messages with negative high word of wParam), so
++    // use the cast to ensure the id is in range
++    return m_subMenu ? (intptr_t)m_subMenu->GetHMenu()
++                     : static_cast<unsigned short>(GetId());
+ }
+ 
+ // get item state
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/pen.cpp wxWidgets-2.8.12.patched/src/msw/pen.cpp
+--- wxWidgets-2.8.12/src/msw/pen.cpp	2011-03-22 20:00:54 +0800
++++ wxWidgets-2.8.12.patched/src/msw/pen.cpp	2011-04-07 12:47:35 +0800
+@@ -172,9 +172,9 @@
+            case wxSTIPPLE:
+                logb.lbStyle = BS_PATTERN ;
+                if (M_PENDATA->m_stipple.Ok())
+-                   logb.lbHatch = (LONG)M_PENDATA->m_stipple.GetHBITMAP();
++                   logb.lbHatch = (intptr_t)M_PENDATA->m_stipple.GetHBITMAP();
+                else
+-                   logb.lbHatch = (LONG)0;
++                   logb.lbHatch = (intptr_t)0;
+                break;
+            case wxBDIAGONAL_HATCH:
+                logb.lbStyle = BS_HATCHED;
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/printdlg.cpp wxWidgets-2.8.12.patched/src/msw/printdlg.cpp
+--- wxWidgets-2.8.12/src/msw/printdlg.cpp	2011-03-22 20:00:54 +0800
++++ wxWidgets-2.8.12.patched/src/msw/printdlg.cpp	2011-04-07 12:51:01 +0800
+@@ -175,10 +175,10 @@
+ 
+ wxWindowsPrintNativeData::~wxWindowsPrintNativeData()
+ {
+-    HGLOBAL hDevMode = (HGLOBAL)(DWORD) m_devMode;
++    HGLOBAL hDevMode = (HGLOBAL) m_devMode;
+     if ( hDevMode )
+         GlobalFree(hDevMode);
+-    HGLOBAL hDevNames = (HGLOBAL)(DWORD) m_devNames;
++    HGLOBAL hDevNames = (HGLOBAL) m_devNames;
+     if ( hDevNames )
+         GlobalFree(hDevNames);
+ }
+@@ -190,8 +190,8 @@
+ 
+ bool wxWindowsPrintNativeData::TransferTo( wxPrintData &data )
+ {
+-    HGLOBAL hDevMode = (HGLOBAL)(DWORD) m_devMode;
+-    HGLOBAL hDevNames = (HGLOBAL)(DWORD) m_devNames;
++    HGLOBAL hDevMode = (HGLOBAL) m_devMode;
++    HGLOBAL hDevNames = (HGLOBAL) m_devNames;
+ 
+     if (!hDevMode)
+     {
+@@ -396,8 +396,8 @@
+ 
+ bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
+ {
+-    HGLOBAL hDevMode = (HGLOBAL)(DWORD) m_devMode;
+-    HGLOBAL hDevNames = (HGLOBAL)(DWORD) m_devNames;
++    HGLOBAL hDevMode = (HGLOBAL) m_devMode;
++    HGLOBAL hDevNames = (HGLOBAL) m_devNames;
+     WinPrinter printer;
+     LPTSTR szPrinterName = (LPTSTR)data.GetPrinterName().wx_str();
+ 
+@@ -493,7 +493,7 @@
+         else
+         {
+             hDevMode = pd.hDevMode;
+-            m_devMode = (void*)(long) hDevMode;
++            m_devMode = (void*)(intptr_t) hDevMode;
+             pd.hDevMode = NULL;
+ 
+             // We'll create a new DEVNAMEs structure below.
+@@ -502,7 +502,7 @@
+             pd.hDevNames = NULL;
+ 
+             // hDevNames = pd->hDevNames;
+-            // m_devNames = (void*)(long) hDevNames;
++            // m_devNames = (void*)(intptr_t) hDevNames;
+             // pd->hDevnames = NULL;
+ 
+         }
+@@ -688,7 +688,7 @@
+     }
+ 
+     // TODO: I hope it's OK to pass some empty strings to DEVNAMES.
+-    m_devNames = (void*) (long) wxCreateDevNames(wxEmptyString, data.GetPrinterName(), wxEmptyString);
++    m_devNames = (void*) (intptr_t) wxCreateDevNames(wxEmptyString, data.GetPrinterName(), wxEmptyString);
+ 
+     return true;
+ }
+@@ -820,13 +820,13 @@
+     if (pd->hDevNames)
+         GlobalFree(pd->hDevNames);
+ 
+-    pd->hDevMode = (HGLOBAL)(DWORD) native_data->GetDevMode();
++    pd->hDevMode = (HGLOBAL) native_data->GetDevMode();
+     native_data->SetDevMode( (void*) NULL);
+ 
+     // Shouldn't assert; we should be able to test Ok-ness at a higher level
+     //wxASSERT_MSG( (pd->hDevMode), wxT("hDevMode must be non-NULL in ConvertToNative!"));
+ 
+-    pd->hDevNames = (HGLOBAL)(DWORD) native_data->GetDevNames();
++    pd->hDevNames = (HGLOBAL) native_data->GetDevNames();
+     native_data->SetDevNames( (void*) NULL);
+ 
+ 
+@@ -897,9 +897,9 @@
+         if (native_data->GetDevMode())
+         {
+             // Make sure we don't leak memory
+-            GlobalFree( (HGLOBAL)(DWORD) native_data->GetDevMode() );
++            GlobalFree( (HGLOBAL) native_data->GetDevMode() );
+         }
+-        native_data->SetDevMode( (void*)(long) pd->hDevMode );
++        native_data->SetDevMode( (void*)(intptr_t) pd->hDevMode );
+         pd->hDevMode = NULL;
+     }
+ 
+@@ -909,9 +909,9 @@
+         if (native_data->GetDevNames())
+         {
+             // Make sure we don't leak memory
+-            GlobalFree((HGLOBAL)(DWORD) native_data->GetDevNames());
++            GlobalFree((HGLOBAL) native_data->GetDevNames());
+         }
+-        native_data->SetDevNames((void*)(long) pd->hDevNames);
++        native_data->SetDevNames((void*)(intptr_t) pd->hDevNames);
+         pd->hDevNames = NULL;
+     }
+ 
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/tbar95.cpp wxWidgets-2.8.12.patched/src/msw/tbar95.cpp
+--- wxWidgets-2.8.12/src/msw/tbar95.cpp	2011-03-22 20:00:54 +0800
++++ wxWidgets-2.8.12.patched/src/msw/tbar95.cpp	2011-04-07 12:53:09 +0800
+@@ -802,8 +802,8 @@
+                 TBREPLACEBITMAP replaceBitmap;
+                 replaceBitmap.hInstOld = NULL;
+                 replaceBitmap.hInstNew = NULL;
+-                replaceBitmap.nIDOld = (UINT) oldToolBarBitmap;
+-                replaceBitmap.nIDNew = (UINT) hBitmap;
++                replaceBitmap.nIDOld = (intptr_t) oldToolBarBitmap;
++                replaceBitmap.nIDNew = (intptr_t) hBitmap;
+                 replaceBitmap.nButtons = nButtons;
+                 if ( !::SendMessage(GetHwnd(), TB_REPLACEBITMAP,
+                                     0, (LPARAM) &replaceBitmap) )
+@@ -832,7 +832,7 @@
+         {
+             TBADDBITMAP addBitmap;
+             addBitmap.hInst = 0;
+-            addBitmap.nID = (UINT) hBitmap;
++            addBitmap.nID = (intptr_t) hBitmap;
+             if ( ::SendMessage(GetHwnd(), TB_ADDBITMAP,
+                                (WPARAM) nButtons, (LPARAM)&addBitmap) == -1 )
+             {
+@@ -912,7 +912,7 @@
+                 {
+                     const wxString& label = tool->GetLabel();
+                     if ( !label.empty() )
+-                        button.iString = (int)label.c_str();
++                        button.iString = (intptr_t)label.c_str();
+                 }
+ 
+                 button.idCommand = tool->GetId();
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/textctrl.cpp wxWidgets-2.8.12.patched/src/msw/textctrl.cpp
+--- wxWidgets-2.8.12/src/msw/textctrl.cpp	2011-03-22 20:00:54 +0800
++++ wxWidgets-2.8.12.patched/src/msw/textctrl.cpp	2011-04-07 12:54:27 +0800
+@@ -960,7 +960,7 @@
+     // finally, stream it in the control
+     EDITSTREAM eds;
+     wxZeroMemory(eds);
+-    eds.dwCookie = (DWORD)&wpc;
++    eds.dwCookie = (intptr_t)&wpc;
+     // the cast below is needed for broken (very) old mingw32 headers
+     eds.pfnCallback = (EDITSTREAMCALLBACK)wxRichEditStreamIn;
+ 
+@@ -1013,7 +1013,7 @@
+ 
+     EDITSTREAM eds;
+     wxZeroMemory(eds);
+-    eds.dwCookie = (DWORD)&data;
++    eds.dwCookie = (intptr_t)&data;
+     eds.pfnCallback = wxRichEditStreamOut;
+ 
+     ::SendMessage
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/thread.cpp wxWidgets-2.8.12.patched/src/msw/thread.cpp
+--- wxWidgets-2.8.12/src/msw/thread.cpp	2011-03-22 20:00:54 +0800
++++ wxWidgets-2.8.12.patched/src/msw/thread.cpp	2011-04-07 13:32:55 +0800
+@@ -522,7 +522,7 @@
+             return (THREAD_RETVAL)-1;
+         }
+ 
+-        rc = (THREAD_RETVAL)thread->Entry();
++        rc = (THREAD_RETVAL)(intptr_t)thread->Entry();
+     }
+     wxCATCH_ALL( wxTheApp->OnUnhandledException(); )
+ 
+@@ -842,7 +842,7 @@
+             break;
+         }
+ 
+-        if ( (DWORD)rc != STILL_ACTIVE )
++        if ( (intptr_t)rc != STILL_ACTIVE )
+             break;
+ 
+         // give the other thread some time to terminate, otherwise we may be
+@@ -1000,7 +1000,7 @@
+     // could we set all bits?
+     if ( level != 0 )
+     {
+-        wxLogDebug(_T("bad level %u in wxThread::SetConcurrency()"), level);
++        wxLogDebug(_T("bad level %Iu in wxThread::SetConcurrency()"), level);
+ 
+         return false;
+     }
+@@ -1162,7 +1162,7 @@
+     }
+ 
+ #ifdef wxUSE_BEGIN_THREAD
+-    _endthreadex((unsigned)status);
++    _endthreadex((unsigned)(intptr_t)status);
+ #else // !VC++
+     ::ExitThread((DWORD)status);
+ #endif // VC++/!VC++
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/tooltip.cpp wxWidgets-2.8.12.patched/src/msw/tooltip.cpp
+--- wxWidgets-2.8.12/src/msw/tooltip.cpp	2011-03-22 20:00:54 +0800
++++ wxWidgets-2.8.12.patched/src/msw/tooltip.cpp	2011-04-07 13:12:26 +0800
+@@ -106,7 +106,7 @@
+             uFlags |= TTF_TRANSPARENT;
+         }
+ 
+-        uId = (UINT)hwndOwner;
++        uId = (intptr_t)hwndOwner;
+     }
+ };
+ 
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/toplevel.cpp wxWidgets-2.8.12.patched/src/msw/toplevel.cpp
+--- wxWidgets-2.8.12/src/msw/toplevel.cpp	2011-03-22 20:00:54 +0800
++++ wxWidgets-2.8.12.patched/src/msw/toplevel.cpp	2011-04-07 13:13:54 +0800
+@@ -1122,7 +1122,7 @@
+     {
+         // restore focus to the child which was last focused unless we already
+         // have it
+-        wxLogTrace(_T("focus"), _T("wxTLW %08x activated."), (int) m_hWnd);
++        wxLogTrace(_T("focus"), _T("wxTLW %p activated."), (intptr_t) m_hWnd);
+ 
+         wxWindow *winFocus = FindFocus();
+         if ( !winFocus || wxGetTopLevelParent(winFocus) != this )
+@@ -1157,9 +1157,9 @@
+         }
+ 
+         wxLogTrace(_T("focus"),
+-                   _T("wxTLW %08x deactivated, last focused: %08x."),
+-                   (int) m_hWnd,
+-                   (int) (m_winLastFocused ? GetHwndOf(m_winLastFocused)
++                   _T("wxTLW %p deactivated, last focused: %p."),
++                   (intptr_t) m_hWnd,
++                   (intptr_t) (m_winLastFocused ? GetHwndOf(m_winLastFocused)
+                                            : NULL));
+ 
+         event.Skip();
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/utils.cpp wxWidgets-2.8.12.patched/src/msw/utils.cpp
+--- wxWidgets-2.8.12/src/msw/utils.cpp	2011-03-22 20:00:54 +0800
++++ wxWidgets-2.8.12.patched/src/msw/utils.cpp	2011-04-07 13:14:32 +0800
+@@ -713,7 +713,7 @@
+         return -1;
+     }
+ 
+-    wxON_BLOCK_EXIT1(::CloseHandle, hProcess);
++    wxON_BLOCK_EXIT1((WINBOOL (*)(void *))::CloseHandle, hProcess);
+ 
+     bool ok = true;
+     switch ( sig )
+diff --strip-trailing-cr -Nur wxWidgets-2.8.12/src/msw/window.cpp wxWidgets-2.8.12.patched/src/msw/window.cpp
+--- wxWidgets-2.8.12/src/msw/window.cpp	2011-03-22 20:00:55 +0800
++++ wxWidgets-2.8.12.patched/src/msw/window.cpp	2011-04-07 13:17:11 +0800
+@@ -2596,8 +2596,8 @@
+     // trace all messages - useful for the debugging
+ #ifdef __WXDEBUG__
+     wxLogTrace(wxTraceMessages,
+-               wxT("Processing %s(hWnd=%08lx, wParam=%8lx, lParam=%8lx)"),
+-               wxGetMessageName(message), (long)hWnd, (long)wParam, lParam);
++               wxT("Processing %s(hWnd=%Ix, wParam=%Ix, lParam=%Ix)"),
++               wxGetMessageName(message), (intptr_t)hWnd, (intptr_t)wParam, (intptr_t)lParam);
+ #endif // __WXDEBUG__
+ 
+     wxWindowMSW *wnd = wxFindWinFromHandle((WXHWND) hWnd);
+@@ -3438,7 +3438,7 @@
+ 
+ wxWindow *wxFindWinFromHandle(WXHWND hWnd)
+ {
+-    return (wxWindow*)wxWinHandleHash->Get((long)hWnd);
++    return (wxWindow*)wxWinHandleHash->Get((intptr_t)hWnd);
+ }
+ 
+ void wxAssociateWinWithHandle(HWND hWnd, wxWindowMSW *win)
+@@ -3452,20 +3452,20 @@
+ #ifdef __WXDEBUG__
+     if ( oldWin && (oldWin != win) )
+     {
+-        wxLogDebug(wxT("HWND %X already associated with another window (%s)"),
+-                   (int) hWnd, win->GetClassInfo()->GetClassName());
++        wxLogDebug(wxT("HWND %IX already associated with another window (%s)"),
++                   (intptr_t) hWnd, win->GetClassInfo()->GetClassName());
+     }
+     else
+ #endif // __WXDEBUG__
+     if (!oldWin)
+     {
+-        wxWinHandleHash->Put((long)hWnd, (wxWindow *)win);
++        wxWinHandleHash->Put((intptr_t)hWnd, (wxWindow *)win);
+     }
+ }
+ 
+ void wxRemoveHandleAssociation(wxWindowMSW *win)
+ {
+-    wxWinHandleHash->Delete((long)win->GetHWND());
++    wxWinHandleHash->Delete((intptr_t)win->GetHWND());
+ }
+ 
+ // ----------------------------------------------------------------------------

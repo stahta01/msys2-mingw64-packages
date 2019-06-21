@@ -1,0 +1,13 @@
+diff --git a/Makefile.in b/Makefile.in
+index 5fe72e1..9e171dc 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -12455,7 +12455,7 @@ install-wxconfig:
+ 	$(INSTALL_DIR) $(DESTDIR)$(bindir)
+ 	$(INSTALL_DIR) $(DESTDIR)$(libdir)/wx/config
+ 	$(INSTALL_PROGRAM) lib/wx/config/$(TOOLCHAIN_FULLNAME) $(DESTDIR)$(libdir)/wx/config
+-	(cd $(DESTDIR)$(bindir) && rm -f wx-config && $(LN_S) $(libdir)/wx/config/$(TOOLCHAIN_FULLNAME) wx-config)
++	(cd $(DESTDIR)$(bindir) && rm -f wx-config && $(LN_S) $(DESTDIR)$(libdir)/wx/config/$(TOOLCHAIN_FULLNAME) wx-config)
+ 
+ locale_install: 
+ 	$(INSTALL_DIR) $(DESTDIR)$(datadir)/locale

@@ -1,0 +1,11 @@
+--- a/include/wx/msw/wrapcctl.h
++++ b/include/wx/msw/wrapcctl.h
+@@ -31,7 +31,7 @@
+ #ifndef _WIN32_IE
+     // use maximal set of features by default, we check for them during
+     // run-time anyhow
+-    #define _WIN32_IE 0x0600
++    #define _WIN32_IE 0x0601
+ #endif // !defined(_WIN32_IE)
+ 
+ #include "wx/msw/wrapwin.h"

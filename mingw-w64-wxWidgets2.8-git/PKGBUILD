@@ -1,0 +1,197 @@
+####
+#
+# Based on packages found at these URLs
+#     https://github.com/Alexpux/MINGW-packages/tree/master/mingw-w64-wxWidgets
+#
+# Maintainer: Tim S <stahta01@gmail.com>
+#
+####
+
+# Packages that are assumed to be installed when building this package.
+#   pacman -S --needed --asdeps mingw-w64-i686-toolchain
+
+_basename=wxWidgets
+_realname=wxmsw
+_wx_basever=2.8
+pkgbase=mingw-w64-${_realname}${_wx_basever}-git
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}${_wx_basever}-git"
+provides=(
+  "${MINGW_PACKAGE_PREFIX}-${_realname}${_wx_basever}"
+  "${MINGW_PACKAGE_PREFIX}-${_basename}${_wx_basever}"
+)
+conflicts=(
+  "${MINGW_PACKAGE_PREFIX}-${_realname}${_wx_basever}"
+  "${MINGW_PACKAGE_PREFIX}-${_basename}${_wx_basever}"
+)
+pkgver=2.8.12.0.r41651.0802369b36
+pkgrel=1
+pkgdesc="A C++ library that lets developers create applications for Windows, Linux and UNIX (mingw-w64)"
+arch=('i686')
+license=("custom:wxWindows")
+url="https://www.wxwidgets.org/"
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-gcc-libs"
+  "${MINGW_PACKAGE_PREFIX}-expat"
+  "${MINGW_PACKAGE_PREFIX}-libjpeg-turbo"
+  "${MINGW_PACKAGE_PREFIX}-libpng"
+  "${MINGW_PACKAGE_PREFIX}-libtiff"
+  "${MINGW_PACKAGE_PREFIX}-xz"
+  "${MINGW_PACKAGE_PREFIX}-zlib"
+)
+makedepends=(
+#  "autoconf"
+#  "automake-wrapper"
+  "git"
+  "make"
+  "patch"
+)
+checkdepends=("${MINGW_PACKAGE_PREFIX}-cppunit")
+options=('strip' 'staticlibs' 'buildflags')
+source=(
+  ${_basename}::"git+https://github.com/wxWidgets/wxWidgets.git#branch=WX_2_8_BRANCH"
+  "001-wxWidgets-2.8.12-fix-bad-WIN32-IE-version.patch"
+  "002-wxWidgets-2.8.12-remove-libwctl3d32.patch"
+  "003-wxWidgets-2.8.12-add-option-Wno-unused-local-typedefs.patch"
+  "004-wxWidgets-2.8.12-relocate-prefix-in-bin-wx-config.patch"
+  "005-wxWidgets-2.8.12-add-destdir-install-wxconfig.patch"
+  "006-wxWidgets-2.8.12-Remove-WX_LIBS_STATIC-from-m4.patch"
+  "007-wxWidgets-2.8.12-test-for-MINGW64_VERSION_MAJOR.patch"
+)
+sha256sums=('SKIP'
+            'befb34f9c4f6e2c55560f866fc497caf1f5021e7fbac48aa3065d27c2a71e56f'
+            '8dd159f4498ae9bafe0a9af09a2b8106ed7fb4b2d10bb01114191aaaa8bbb4c6'
+            'b10b4a0dc46f141eddd820526c591ab25dbdb2a6ce444a4f1ce2061e4d942916'
+            '616b16104fff3026026e5ac3c9d6a8ebd56e7f98245b9c0ce20e30d980fe8959'
+            'df64ed60c4e594997f38c773f958079ed8160934b3a07b6fefd131a5a0659f59'
+            'd2d405de481056ef46059dcc3d0d80571a064e4e6ae506693115322e62f3d011'
+            '7030c3497d18a5a50f0c467deeb56196fe8e6b6fedac6a83045b7eebc40eb446')
+
+pkgver() {
+  cd ${srcdir}/${_basename}
+  local _minor2=$(head -n 34 include/wx/version.h | grep 'wxRELEASE_NUMBER' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
+  local _minor3=$(head -n 34 include/wx/version.h | grep 'wxSUBRELEASE_NUMBER' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
+  printf "%s.%s.%s.r%s.%s" "${_wx_basever}" "$_minor2" "$_minor3" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+prepare() {
+  cd "${srcdir}/${_basename}"
+
+  # Patches needed to build 32 bit
+  if ! patch -R -p1 --dry-run -i "${srcdir}"/001-wxWidgets-2.8.12-fix-bad-WIN32-IE-version.patch > /nul; then
+    patch -p1 -i "${srcdir}"/001-wxWidgets-2.8.12-fix-bad-WIN32-IE-version.patch
+  fi
+
+  # Patch needed for mingw64 GCC and ANSI 32 bit build
+  if ! patch -R -p1 --dry-run -i "${srcdir}"/007-wxWidgets-2.8.12-test-for-MINGW64_VERSION_MAJOR.patch > /nul; then
+    patch -p1 -i "${srcdir}"/007-wxWidgets-2.8.12-test-for-MINGW64_VERSION_MAJOR.patch
+  fi
+
+  # Patches needed to build 64 bit
+  if ! patch -R -p1 --dry-run -i "${srcdir}"/002-wxWidgets-2.8.12-remove-libwctl3d32.patch > /nul; then
+    patch -p1 -i "${srcdir}"/002-wxWidgets-2.8.12-remove-libwctl3d32.patch
+  fi
+
+  # Patches needed to fix wx-config
+  if ! patch -R -p1 --dry-run -i "${srcdir}"/004-wxWidgets-2.8.12-relocate-prefix-in-bin-wx-config.patch > /nul; then
+    patch -p1 -i "${srcdir}"/004-wxWidgets-2.8.12-relocate-prefix-in-bin-wx-config.patch
+  fi
+  if ! patch -R -p1 --dry-run -i "${srcdir}"/005-wxWidgets-2.8.12-add-destdir-install-wxconfig.patch > /nul; then
+    patch -p1 -i "${srcdir}"/005-wxWidgets-2.8.12-add-destdir-install-wxconfig.patch
+  fi
+
+  # Patches that reduce the number of Compiler Warnings.
+  if ! patch -R -p1 --dry-run -i "${srcdir}"/003-wxWidgets-2.8.12-add-option-Wno-unused-local-typedefs.patch > /nul; then
+    patch -p1 -i "${srcdir}"/003-wxWidgets-2.8.12-add-option-Wno-unused-local-typedefs.patch
+  fi
+
+  if ! patch -R -p1 --dry-run -i "${srcdir}"/006-wxWidgets-2.8.12-Remove-WX_LIBS_STATIC-from-m4.patch > /nul; then
+    patch -p1 -i "${srcdir}"/006-wxWidgets-2.8.12-Remove-WX_LIBS_STATIC-from-m4.patch
+  fi
+}
+
+build() {
+  ##CXXFLAGS+=" -std=gnu++11"
+  #[[ -d "${srcdir}"/build-${CARCH} ]] && rm -rf "${srcdir}"/build-${CARCH}
+  #mkdir -p "${srcdir}"/build-${CARCH} && cd "${srcdir}"/build-${CARCH}
+
+  #CXXFLAGS+=" -fpermissive" \
+  #../${_basename}/configure \
+    #--prefix=${MINGW_PREFIX} \
+    #--host=${MINGW_CHOST} \
+    #--target=${MINGW_CHOST} \
+    #--build=${MINGW_CHOST} \
+    #--enable-shared \
+    #--enable-iniconf \
+    #--enable-iff \
+    #--disable-unicode \
+    #--enable-accessibility \
+    #--disable-compat26 \
+    #--disable-monolithic \
+    #--disable-mslu \
+    #--disable-precomp-headers \
+    #--with-msw \
+    #--with-opengl \
+    #--with-regex=builtin
+
+  #make #VERBOSE=1
+
+  #CXXFLAGS+=" -std=gnu++11"
+  [[ -d "${srcdir}"/build-${CARCH}-static ]] && rm -rf "${srcdir}"/build-${CARCH}-static
+  mkdir -p "${srcdir}"/build-${CARCH}-static && cd "${srcdir}"/build-${CARCH}-static
+
+  CXXFLAGS+=" -fpermissive" \
+  ../${_basename}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST} \
+    --build=${MINGW_CHOST} \
+    --enable-static \
+    --disable-shared \
+    --enable-iniconf \
+    --enable-iff \
+    --disable-unicode \
+    --enable-accessibility \
+    --disable-compat26 \
+    --disable-monolithic \
+    --disable-mslu \
+    --disable-precomp-headers \
+    --with-msw \
+    --with-opengl \
+    --with-regex=builtin
+
+  make #VERBOSE=1
+  make -C contrib/src/stc #VERBOSE=1
+}
+
+package() {
+  cd "${srcdir}"/build-${CARCH}-static
+  make DESTDIR="${pkgdir}" install
+  make -C contrib/src/stc DESTDIR="${pkgdir}" install
+
+
+  #cd "${srcdir}"/build-${CARCH}
+  #make DESTDIR="${pkgdir}" install
+
+  mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
+#  mv ${pkgdir}${MINGW_PREFIX}/lib/*.dll ${pkgdir}${MINGW_PREFIX}/bin
+
+  # Rename files
+  mv ${pkgdir}${MINGW_PREFIX}/bin/wx-config{,-${_wx_basever}}
+  mv ${pkgdir}${MINGW_PREFIX}/share/aclocal/wxwin.m4 ${pkgdir}${MINGW_PREFIX}/share/aclocal/wxwin2.8.m4
+  mv ${pkgdir}${MINGW_PREFIX}/share/bakefile/presets/wx.bkl ${pkgdir}${MINGW_PREFIX}/share/bakefile/presets/wx28.bkl
+  mv ${pkgdir}${MINGW_PREFIX}/share/bakefile/presets/wx_unix.bkl ${pkgdir}${MINGW_PREFIX}/share/bakefile/presets/wx28_unix.bkl
+  mv ${pkgdir}${MINGW_PREFIX}/share/bakefile/presets/wx_win32.bkl ${pkgdir}${MINGW_PREFIX}/share/bakefile/presets/wx28_win32.bkl
+  # Remove wxrc.exe
+  rm ${pkgdir}${MINGW_PREFIX}/bin/wxrc.exe
+
+  # License files
+  cd "${srcdir}"/${_basename}/docs
+  install -Dm644 preamble.txt "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/preamble.txt"
+  install -Dm644 licence.txt  "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/licence.txt"
+  install -Dm644 licendoc.txt "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/licendoc.txt"
+  install -Dm644 lgpl.txt     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/lgpl.txt"
+  install -Dm644 gpl.txt      "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/gpl.txt"
+}
+
+#package_mingw-w64-i686-wxmsw2.8-git() { _package_wxmsw; }
+#package_mingw-w64-x86_64-wxmsw2.8-git() { _package_wxmsw; }
