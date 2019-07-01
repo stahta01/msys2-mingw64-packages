@@ -82,7 +82,7 @@ prepare() {
   sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" {libiberty,gcc}/configure
 
   # do not expect $prefix/mingw symlink - this should be superceded by
-  # 160-mingw-dont-ignore-native-system-header-dir.patch .. but isn't!
+  # 133-gcc-4.8-mingw-dont-ignore-native-system-header-dir.patch .. but isn't!
   [[ -f configure.src ]] && {
     rm -f configure
     cp configure.src configure
