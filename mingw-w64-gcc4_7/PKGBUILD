@@ -162,10 +162,11 @@ build() {
 
   # While we're debugging -fopenmp problems at least.
   # .. we may as well not strip anything.
-  if check_option "strip" "n"; then
-    sed -i 's,^STRIP = .*$,STRIP = true,g'                   Makefile
-    sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
-  fi
+  # suspect this code was causing build error Tim S.
+  #if check_option "strip" "n"; then
+    #sed -i 's,^STRIP = .*$,STRIP = true,g'                   Makefile
+    #sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
+  #fi
 
   make all
 
