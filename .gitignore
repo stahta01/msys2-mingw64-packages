@@ -9,13 +9,8 @@
 *.zip
 *.tgz
 *.log
-*.log.[0-9]*
 *.sig
 
-/*/logpipe.*.lnk
-
-/*/src/
-/*/pkg/
 /*/*-git/
 /*/*-svn/
 /*/*-hg/
