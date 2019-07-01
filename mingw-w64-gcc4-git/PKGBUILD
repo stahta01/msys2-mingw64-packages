@@ -1,12 +1,12 @@
-# Maintainer: Tim Stahlhut <stahta01@gmail.com>
+# Maintainer:  Tim Stahlhut <stahta01@gmail.com>
 # Contributor: Alexey Pavlov <alexpux@gmail.com>
 # Contributor: Ray Donnelly <mingw.android@gmail.com>
 # Contributor: Alexey Borzenkov <snaury@gmail.com>
 # Contributor: Renato Silva <br.renatosilva@gmail.com>
 # Contributor: Liu Hao <lh_mouse@126.com>
 
+_enable_ada=yes
 _enable_fortran=no
-_enable_ada=no
 _enable_objc=no
 _realname=gcc
 _sourcedir=${_realname}-git
@@ -18,7 +18,7 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git"
          $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada-git")
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc-git")
         )
-pkgver=4.7.4.d20140612.c7.gae10eb82fe3
+pkgver=4.9.2.d20141030.c4.gc1283af40b6
 pkgrel=1
 pkgdesc="GCC 4.x for the MinGW-w64"
 arch=('any')
@@ -26,7 +26,7 @@ url="https://gcc.gnu.org"
 license=('GPL' 'LGPL' 'FDL' 'custom')
 groups=("${MINGW_PACKAGE_PREFIX}-toolchain")
 makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
-             $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
+#             $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
              "${MINGW_PACKAGE_PREFIX}-binutils"
              "${MINGW_PACKAGE_PREFIX}-crt"
              "${MINGW_PACKAGE_PREFIX}-headers"
@@ -38,12 +38,17 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
              "${MINGW_PACKAGE_PREFIX}-winpthreads"
              "${MINGW_PACKAGE_PREFIX}-zlib")
 optdepends=()
-#options=('staticlibs' '!emptydirs' '!strip' 'debug') # triggered weird build error
 options=('strip' '!debug' 'staticlibs' '!emptydirs') # '!buildflags'
 
-_branch=gcc-4_7-branch
+#_git_commit=21f0203c9247d32365d3b87142629712f109262a # 5.0.0
+ _git_commit=c1283af40b65f1ad862cf5b27e2d9ed10b2076b6 # gcc-4_9_2-release
+#_git_commit=a7aa383874520cd5762701f1c790c930c5ab5bb5 # gcc-4_9_0-release
+#_git_commit=ae10eb82fe34c18640ad65c2ab94ffc53f349315 # gcc-4_7_4-release SVN211571
+#_git_commit=93c5ebd73a4d1626d25203081d079cdd68222fcc # gcc-4_7_0-release SVN185674
 
-source=(${_sourcedir}::"git://gcc.gnu.org/git/gcc.git#branch=${_branch}"
+#_branch=gcc-4_9-branch
+#source=(${_sourcedir}::"git://gcc.gnu.org/git/gcc.git#branch=${_branch}"
+source=(${_sourcedir}::"git://gcc.gnu.org/git/gcc.git#commit=${_git_commit}"
         104-gcc-4.6.4-Fix-texi-docs-syntax-errors.patch
         111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
         121-gcc-4.0-handle-use-mingw-ansi-stdio.patch
@@ -57,12 +62,26 @@ sha256sums=('SKIP'
             '748a921674a663532426bfca61856517610154564cfed6949629ba62fdeb8de3'
             '1ae38b261fc68c332051ee3080dd4914323be16b50152a6ed7e14cca938e10af'
             '918152eb9c4654b7538dbe91e4ab939aab26e1b14f6a995492b9fccefff334fc'
-            'fc1318f0ff236ea158f9123fe80ade0a64bd97cf68a0c076349bd501341a03f7'
+            'eae51467931487ab45f3c64b1ac75894a838f32512fe8f5c46aed2c5b2bdbc63'
             '714e18e8e1a89c149dfabde6eb6dd0a7518590b7a911643de761b6d31c7acd2d')
 _threads="posix"
 _git_base_commit=
 _gcc_version=
 _gcc_date=
+
+# =========================================== #
+#   Helper macro(s) to help make tasks easier #
+# --whitespace=error/fix or others
+git_am_patch_with_msg() {
+  for _patch in "$@"
+  do
+    msg2 "Applying ${_patch} using git am"
+    git am --committer-date-is-author-date \
+      --whitespace=fix --quiet \
+      "${srcdir}/${_patch}"
+  done
+}
+# =========================================== #
 
 pkgver() {
   cd ${srcdir}/${_sourcedir}
@@ -74,14 +93,22 @@ pkgver() {
 prepare() {
   cd ${srcdir}/${_sourcedir}
   _git_base_commit=$(git rev-parse HEAD)
-  GIT_AM="git am --committer-date-is-author-date"
-  ${GIT_AM} ${srcdir}/104-gcc-4.6.4-Fix-texi-docs-syntax-errors.patch
-  ${GIT_AM} ${srcdir}/111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
-  ${GIT_AM} ${srcdir}/121-gcc-4.0-handle-use-mingw-ansi-stdio.patch
-  ${GIT_AM} ${srcdir}/131-gcc-4.0-windows-lrealpath-no-force-lowercase-nor-backslash.patch
-  ${GIT_AM} ${srcdir}/132-gcc-4.3-dont-escape-arguments-that-dont-need-it-in-pex-win32.c.patch
-  ${GIT_AM} ${srcdir}/141-gcc-4.4-ktietz-libgomp.patch
-  ${GIT_AM} ${srcdir}/161-gcc-4.0-cfns-fix-mismatch-in-gnu_inline-attributes.patch
+  _gcc_version=$(head -n 34 gcc/BASE-VER | sed -e 's/.* //' | tr -d '"\n')
+  echo "_gcc_version = $_gcc_version"
+
+  if [[ "${_gcc_version}" < "4.9" ]]; then
+    git_am_patch_with_msg 104-gcc-4.6.4-Fix-texi-docs-syntax-errors.patch
+  fi
+  git_am_patch_with_msg 111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
+  if [[ "${_gcc_version}" < "4.9" ]]; then
+    git_am_patch_with_msg 121-gcc-4.0-handle-use-mingw-ansi-stdio.patch
+  fi
+  git_am_patch_with_msg 131-gcc-4.0-windows-lrealpath-no-force-lowercase-nor-backslash.patch
+  git_am_patch_with_msg 132-gcc-4.3-dont-escape-arguments-that-dont-need-it-in-pex-win32.c.patch
+  git_am_patch_with_msg 141-gcc-4.4-ktietz-libgomp.patch
+  if [[ "${_gcc_version}" < "4.9" ]]; then
+    git_am_patch_with_msg 161-gcc-4.0-cfns-fix-mismatch-in-gnu_inline-attributes.patch
+  fi
 
   #do not install libiberty
   sed -i 's/install_to_$(INSTALL_DEST) //' libiberty/Makefile.in
@@ -169,7 +196,7 @@ build() {
 
   # While we're debugging -fopenmp problems at least.
   # .. we may as well not strip anything.
-  # suspect this code was causing build error Tim S.
+  # this code was causing build error Tim S.
   #if check_option "strip" "n"; then
     #sed -i 's,^STRIP = .*$,STRIP = true,g'                   Makefile
     #sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
@@ -204,13 +231,15 @@ package_mingw-w64-gcc-libs-git() {
   # We explain the licensing in this generated README file
   mkdir -p "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs"
   cat << ENDFILE > "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/README"
-The libgcc, libssp, libstdc++, libgomp and libatomic libraries are covered by
+The libgcc, libssp, libstdc++, and libgomp libraries are covered by
 GPL3+ with the GCC Runtime Library Exception. The libquadmath library is covered
 by LGPL2+. The package as a whole can be redistributed under GPL3+.
 ENDFILE
 
   # License files
   install -Dm644 "${srcdir}/${_sourcedir}/COPYING3"        "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING3"
+  install -Dm644 "${srcdir}/${_sourcedir}/COPYING3.LIB"    "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING3.LIB"
+  install -Dm644 "${srcdir}/${_sourcedir}/COPYING"         "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING"
   install -Dm644 "${srcdir}/${_sourcedir}/COPYING.LIB"     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING.LIB"
   install -Dm644 "${srcdir}/${_sourcedir}/COPYING.RUNTIME" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING.RUNTIME"
 
@@ -236,6 +265,9 @@ package_mingw-w64-gcc-git() {
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,include,lib,share}
+
+  cd ${srcdir}/${_sourcedir}
+  _gcc_version=$(head -n 34 gcc/BASE-VER | sed -e 's/.* //' | tr -d '"\n')
 
   cd ${srcdir}${MINGW_PREFIX}
   cp bin/cpp.exe                                        ${pkgdir}${MINGW_PREFIX}/bin/
@@ -314,6 +346,9 @@ package_mingw-w64-gcc-fortran-git() {
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib,share}
 
+  cd ${srcdir}/${_sourcedir}
+  _gcc_version=$(head -n 34 gcc/BASE-VER | sed -e 's/.* //' | tr -d '"\n')
+
   cd ${srcdir}${MINGW_PREFIX}
   cp bin/gfortran.exe ${pkgdir}${MINGW_PREFIX}/bin/
   cp bin/${MINGW_CHOST}-gfortran.exe ${pkgdir}${MINGW_PREFIX}/bin/
@@ -336,6 +371,9 @@ package_mingw-w64-gcc-ada-git() {
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib,share}
+
+  cd ${srcdir}/${_sourcedir}
+  _gcc_version=$(head -n 34 gcc/BASE-VER | sed -e 's/.* //' | tr -d '"\n')
 
   cd ${srcdir}${MINGW_PREFIX}
   cp bin/gnat*.exe ${pkgdir}${MINGW_PREFIX}/bin/
@@ -360,6 +398,9 @@ package_mingw-w64-gcc-objc-git() {
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib}
+
+  cd ${srcdir}/${_sourcedir}
+  _gcc_version=$(head -n 34 gcc/BASE-VER | sed -e 's/.* //' | tr -d '"\n')
 
   cd ${srcdir}${MINGW_PREFIX}
   cp bin/libobjc*.dll ${pkgdir}${MINGW_PREFIX}/bin/
