@@ -1,0 +1,36 @@
+From 6b7d03d89789dda21af8893d424f555bf5b33d42 Mon Sep 17 00:00:00 2001
+From: hubicka <hubicka@138bc75d-0d04-0410-961f-82ee72b054a4>
+Date: Tue, 7 Apr 2015 21:02:12 +0000
+Subject: calls.c: PR ipa/65540
+
+2015-04-07  Jan Hubicka  <hubicka@ucw.cz>
+
+PR ipa/65540
+* calls.c (initialize_argument_information): When producing tail
+call also turn SSA_NAMES passed by references to original PARM_DECLs
+
+Part of SVN 221910
+---
+ gcc/calls.c                                   |  9 ++++++++
+
+diff --git a/gcc/calls.c b/gcc/calls.c
+index ec44624d7c9..970415d6592 100644
+--- a/gcc/calls.c
++++ b/gcc/calls.c
+@@ -1321,6 +1321,15 @@ initialize_argument_information (int num_actuals ATTRIBUTE_UNUSED,
+ 		  && TREE_CODE (base) != SSA_NAME
+ 		  && (!DECL_P (base) || MEM_P (DECL_RTL (base)))))
+ 	    {
++	      /* We may have turned the parameter value into an SSA name.
++		 Go back to the original parameter so we can take the
++		 address.  */
++	      if (TREE_CODE (args[i].tree_value) == SSA_NAME)
++		{
++		  gcc_assert (SSA_NAME_IS_DEFAULT_DEF (args[i].tree_value));
++		  args[i].tree_value = SSA_NAME_VAR (args[i].tree_value);
++		  gcc_assert (TREE_CODE (args[i].tree_value) == PARM_DECL);
++		}
+ 	      /* Argument setup code may have copied the value to register.  We
+ 		 revert that optimization now because the tail call code must
+ 		 use the original location.  */
+-- 

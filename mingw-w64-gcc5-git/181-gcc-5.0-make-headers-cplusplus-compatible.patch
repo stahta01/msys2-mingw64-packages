@@ -1,0 +1,36 @@
+From af969cbedf4264b4cbc120608c3405df0b56cffd Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Thu, 18 Jul 2019 23:53:35 -0400
+Subject: Add extern "C" to header
+
+---
+ gcc/config/i386/xmmintrin.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/gcc/config/i386/xmmintrin.h b/gcc/config/i386/xmmintrin.h
+index 9cd3fa7d079..9334f270f39 100644
+--- a/gcc/config/i386/xmmintrin.h
++++ b/gcc/config/i386/xmmintrin.h
+@@ -64,6 +64,10 @@ _mm_prefetch (const void *__P, enum _mm_hint __I)
+ #define __DISABLE_SSE__
+ #endif /* __SSE__ */
+ 
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ /* The Intel API is flexible enough that we must allow aliasing with other
+    vector types, and their scalar components.  */
+ typedef float __m128 __attribute__ ((__vector_size__ (16), __may_alias__));
+@@ -1245,6 +1249,10 @@ do {									\
+   (row3) = __builtin_ia32_movhlps (__t3, __t2);				\
+ } while (0)
+ 
++#ifdef __cplusplus
++}
++#endif
++
+ /* For backward source compatibility.  */
+ # include <emmintrin.h>
+ 
+-- 

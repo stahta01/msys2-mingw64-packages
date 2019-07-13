@@ -1,0 +1,29 @@
+From a698bcaa9ca818d4f189439b1a996abd9895b680 Mon Sep 17 00:00:00 2001
+From: ktietz <ktietz@138bc75d-0d04-0410-961f-82ee72b054a4>
+Date: Tue, 10 Feb 2015 14:13:13 +0000
+Subject: libgcov-driver-system.c: undefine clashing macro for mkdir.
+
+2015-02-10  Rainer Emrich  <rainer@emrich-ebersheim.de>
+
+PR gcov-profile/61889
+* libgcc/libgcov-driver-system.c: undefine clashing macro for mkdir.
+
+Part of SVN 220582
+---
+ libgcc/libgcov-driver-system.c | 3 +++
+
+diff --git a/libgcc/libgcov-driver-system.c b/libgcc/libgcov-driver-system.c
+index 56d08002173..94f198dcefb 100644
+--- a/libgcc/libgcov-driver-system.c
++++ b/libgcc/libgcov-driver-system.c
+@@ -66,6 +66,9 @@ create_file_directory (char *filename)
+ #ifdef TARGET_POSIX_IO
+             && mkdir (filename, 0755) == -1
+ #else
++#ifdef mkdir
++#undef mkdir
++#endif
+             && mkdir (filename) == -1
+ #endif
+             /* The directory might have been made by another process.  */
+-- 

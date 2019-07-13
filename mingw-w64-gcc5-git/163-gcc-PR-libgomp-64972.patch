@@ -1,0 +1,100 @@
+From 2634aed9cfbda253e73e633afcaade558530f60a Mon Sep 17 00:00:00 2001
+From: ktietz <ktietz@138bc75d-0d04-0410-961f-82ee72b054a4>
+Date: Wed, 25 Mar 2015 15:05:02 +0000
+Subject: oacc-parallel.c: Use PRIu64 if available.
+
+2015-03-25  Kai Tietz  <ktietz@redhat.com>
+
+PR libgomp/64972
+* oacc-parallel.c (GOACC_parallel): Use PRIu64 if available.
+(GOACC_data_start): Likewise.
+* target.c (gomp_map_vars): Likewise.
+
+Part of 221665
+---
+ libgomp/oacc-parallel.c | 24 +++++++++++++++++++-----
+ libgomp/target.c        | 14 ++++++++++++--
+
+diff --git a/libgomp/oacc-parallel.c b/libgomp/oacc-parallel.c
+index a3007428a86..0c74f547a24 100644
+--- a/libgomp/oacc-parallel.c
++++ b/libgomp/oacc-parallel.c
+@@ -31,6 +31,9 @@
+ #include "libgomp_g.h"
+ #include "gomp-constants.h"
+ #include "oacc-int.h"
++#ifdef HAVE_INTTYPES_H
++# include <inttypes.h>  /* For PRIu64.  */
++#endif
+ #include <string.h>
+ #include <stdarg.h>
+ #include <assert.h>
+@@ -99,9 +102,15 @@ GOACC_parallel (int device, void (*fn) (void *),
+     gomp_fatal ("num_workers (%d) different from one is not yet supported",
+ 		num_workers);
+ 
+-  gomp_debug (0, "%s: mapnum=%zd, hostaddrs=%p, sizes=%p, kinds=%p, async=%d\n",
+-	      __FUNCTION__, mapnum, hostaddrs, sizes, kinds, async);
+-
++#ifdef HAVE_INTTYPES_H
++  gomp_debug (0, "%s: mapnum=%"PRIu64", hostaddrs=%p, size=%p, kinds=%p, "
++		 "async = %d\n",
++	      __FUNCTION__, (uint64_t) mapnum, hostaddrs, sizes, kinds, async);
++#else
++  gomp_debug (0, "%s: mapnum=%lu, hostaddrs=%p, sizes=%p, kinds=%p, async=%d\n",
++	      __FUNCTION__, (unsigned long) mapnum, hostaddrs, sizes, kinds,
++	      async);
++#endif
+   select_acc_device (device);
+ 
+   thr = goacc_thread ();
+@@ -178,8 +187,13 @@ GOACC_data_start (int device, size_t mapnum,
+   bool host_fallback = device == GOMP_DEVICE_HOST_FALLBACK;
+   struct target_mem_desc *tgt;
+ 
+-  gomp_debug (0, "%s: mapnum=%zd, hostaddrs=%p, sizes=%p, kinds=%p\n",
+-	      __FUNCTION__, mapnum, hostaddrs, sizes, kinds);
++#ifdef HAVE_INTTYPES_H
++  gomp_debug (0, "%s: mapnum=%"PRIu64", hostaddrs=%p, size=%p, kinds=%p\n",
++	      __FUNCTION__, (uint64_t) mapnum, hostaddrs, sizes, kinds);
++#else
++  gomp_debug (0, "%s: mapnum=%lu, hostaddrs=%p, sizes=%p, kinds=%p\n",
++	      __FUNCTION__, (unsigned long) mapnum, hostaddrs, sizes, kinds);
++#endif
+ 
+   select_acc_device (device);
+ 
+diff --git a/libgomp/target.c b/libgomp/target.c
+index 50baa4d1319..c5dda3f0c93 100644
+--- a/libgomp/target.c
++++ b/libgomp/target.c
+@@ -33,6 +33,9 @@
+ #include <limits.h>
+ #include <stdbool.h>
+ #include <stdlib.h>
++#ifdef HAVE_INTTYPES_H
++# include <inttypes.h>  /* For PRIu64.  */
++#endif
+ #include <string.h>
+ #include <assert.h>
+ 
+@@ -438,9 +441,16 @@ gomp_map_vars (struct gomp_device_descr *devicep, size_t mapnum,
+ 		      /* We already looked up the memory region above and it
+ 			 was missing.  */
+ 		      size_t size = k->host_end - k->host_start;
++#ifdef HAVE_INTTYPES_H
++		      gomp_fatal ("present clause: !acc_is_present (%p, "
++				  "%"PRIu64" (0x%"PRIx64"))",
++				  (void *) k->host_start,
++				  (uint64_t) size, (uint64_t) size);
++#else
+ 		      gomp_fatal ("present clause: !acc_is_present (%p, "
+-				  "%zd (0x%zx))", (void *) k->host_start,
+-				  size, size);
++				  "%lu (0x%lx))", (void *) k->host_start,
++				  (unsigned long) size, (unsigned long) size);
++#endif
+ 		    }
+ 		    break;
+ 		  case GOMP_MAP_FORCE_DEVICEPTR:
+-- 
