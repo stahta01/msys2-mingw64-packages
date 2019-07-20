@@ -1,10 +1,10 @@
-# Maintainer: Tim Stahlhut <stahta01@gmail.com>
+# Maintainer:  Tim Stahlhut <stahta01@gmail.com>
 # Contributor: Alexey Pavlov <alexpux@gmail.com>
 # Contributor: Alexey Borzenkov <snaury@gmail.com>
 # Contributor: Ray Donnelly <mingw.android@gmail.com>
 
+_enable_ada=yes
 _enable_fortran=no
-_enable_ada=no
 _enable_objc=no
 _realname=gcc
 pkgname=(
@@ -29,6 +29,7 @@ optdepends=()
 replaces=()
 backup=()
 options=('strip' '!debug' 'staticlibs' '!emptydirs') # '!buildflags'
+_sourcedir=${_realname}-${pkgver}
 source=("ftp://gcc.gnu.org/pub/gcc/releases/${_realname}-${pkgver}/${_realname}-${pkgver}.tar.bz2"
     104-gcc-4.6.4-Fix-texi-docs-syntax-errors.patch
     111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
@@ -47,33 +48,52 @@ sha256sums=('92e61c6dc3a0a449e62d72a38185fda550168a86702dea07125ebd3ec3996282'
             '714e18e8e1a89c149dfabde6eb6dd0a7518590b7a911643de761b6d31c7acd2d')
 _threads="posix"
 
-_sourcedir=${_realname}-${pkgver}
+# =========================================== #
+#   Helper macro(s) to help make tasks easier #
+apply_patch_with_msg() {
+  for _patch in "$@"
+  do
+    msg2 "Applying ${_patch}"
+    patch -Nbp1 -i "${srcdir}/${_patch}"
+  done
+}
+
+del_file_exists() {
+  for _fname in "$@"
+  do
+    if [ -f ${_fname} ]; then
+      rm -rf ${_fname}
+    fi
+  done
+}
+# =========================================== #
+
 prepare() {
   cd ${srcdir}/${_sourcedir}
 
   #remove files the patches will create (so they aren't in the way the 2nd time round)
   [ -f gcc/testsuite/g++.dg/cpp0x/lambda/lambda-names1.C ] && rm gcc/testsuite/g++.dg/cpp0x/lambda/lambda-names1.C
 
-  patch -Np1 -i ${srcdir}/104-gcc-4.6.4-Fix-texi-docs-syntax-errors.patch
+  apply_patch_with_msg 104-gcc-4.6.4-Fix-texi-docs-syntax-errors.patch
 
-  patch -Np1 -i ${srcdir}/161-gcc-4.0-cfns-fix-mismatch-in-gnu_inline-attributes.patch
+  apply_patch_with_msg 161-gcc-4.0-cfns-fix-mismatch-in-gnu_inline-attributes.patch
 
   # Don't waste valuable commandline chars on double-quotes around "arguments"
   #  that don't need them.
-  patch -Np1 -i ${srcdir}/132-gcc-4.3-dont-escape-arguments-that-dont-need-it-in-pex-win32.c.patch
+  apply_patch_with_msg 132-gcc-4.3-dont-escape-arguments-that-dont-need-it-in-pex-win32.c.patch
 
   # Make Windows behave the same as Posix in the consideration of whether folder
   # "/exists/doesnt-exist/.." is a valid path.. in Posix, it isn't.
-  patch -Np1 -i ${srcdir}/111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
+  apply_patch_with_msg 111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
 
   # Don't make a lowercase backslashed path from argv[0]
   #  that then fail to strcmp with prefix(es) .. they're also ugly.
-  patch -Np1 -i ${srcdir}/131-gcc-4.0-windows-lrealpath-no-force-lowercase-nor-backslash.patch
+  apply_patch_with_msg 131-gcc-4.0-windows-lrealpath-no-force-lowercase-nor-backslash.patch
 
   # Kai's libgomp fix.
-  patch -Np1 -i ${srcdir}/141-gcc-4.4-ktietz-libgomp.patch
+  apply_patch_with_msg 141-gcc-4.4-ktietz-libgomp.patch
 
-  patch -Np1 -i ${srcdir}/121-gcc-4.0-handle-use-mingw-ansi-stdio.patch
+  apply_patch_with_msg 121-gcc-4.0-handle-use-mingw-ansi-stdio.patch
 
   #do not install libiberty
   sed -i 's/install_to_$(INSTALL_DEST) //' libiberty/Makefile.in
@@ -120,6 +140,15 @@ build() {
   esac
 
   local _languages="c,lto,c++"
+  if [ "$_enable_fortran" == "yes" ]; then
+    _languages+=",fortran"
+  fi
+  if [ "$_enable_ada" == "yes" ]; then
+    _languages+=",ada"
+  fi
+  if [ "$_enable_objc" == "yes" ]; then
+    _languages+=",objc,obj-c++"
+  fi
 
   ../${_sourcedir}/configure \
     --prefix=${MINGW_PREFIX} \
