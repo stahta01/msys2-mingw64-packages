@@ -9,7 +9,7 @@
 ####
 #
 # Normal 64 bit build command
-#   MINGW_INSTALLS=mingw64 makepkg-mingw -sLf --nocheck --install
+#   MINGW_INSTALLS=mingw64 makepkg-mingw -sLf
 
 _basename=wxWidgets
 _sourcedir=${_basename}-git
@@ -20,16 +20,14 @@ _enable_mediactrl=yes     # Not yet used in building wxGTK/Win or wxQt/Win
 _enable_webview=yes       # Not used in building wxGTK/Win
 _do_check_in_package=no   # Set to no for normal build
 _build_msw=yes            # Set to yes for normal build
-_build_gtk2=no            # Set to no for normal build
 _build_gtk3=yes            # Set to no for normal build
-_build_qt=no              # Set to no for normal build
+_build_qt=yes              # Set to no for normal build
 pkgname=(
   $([[ "$_build_msw" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxmsw${_wx_basever}${_namesuffix}")
-  $([[ "$_build_gtk2" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxgtk${_wx_basever}-gtk2${_namesuffix}")
   $([[ "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxgtk${_wx_basever}-gtk3${_namesuffix}")
   $([[ "$_build_qt" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxqt${_wx_basever}${_namesuffix}")
 )
-pkgver=3.1.4.0.r67392.c4.gabaccbc2e2
+pkgver=3.1.4.0.r67768.c4.g08db475a7f
 pkgrel=1
 pkgdesc="A C++ library that lets developers create applications for Windows, Linux and UNIX (mingw-w64)"
 arch=('any')
@@ -38,10 +36,9 @@ url="https://www.wxwidgets.org/"
 makedepends=(
   "git"
   "make"
-  $([[ "$_build_gtk2" == "yes" || "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-pkg-config")
-  $([[ "$_build_gtk2" == "yes" || "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-libsecret")
-  $([[ "$_build_gtk2" == "yes" || "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-libnotify")
-  $([[ "$_build_gtk2" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-gtk2")
+  $([[ "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-pkg-config")
+  $([[ "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-libsecret")
+  $([[ "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-libnotify")
   $([[ "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-gtk3")
   $([[ "$_build_qt"   == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-qt5")
   "${MINGW_PACKAGE_PREFIX}-libpng"
@@ -52,19 +49,19 @@ checkdepends=()
 options=('!strip' 'staticlibs' 'buildflags' 'debug')
 source=(
   ${_sourcedir}::"git+https://github.com/wxWidgets/wxWidgets.git#branch=master"
-  #${_sourcedir}::"git+https://github.com/wxWidgets/wxWidgets.git#commit=3bb74df21542404c10146b64ebb9b0b4ccab22bd"
 
-  "001-wxWidgets-3.0.2-relocate-prefix-in-bin-wx-config.patch"
-  "005-wxWidgets-3.1.3-Remove-WX_LIBS_STATIC-from-m4.patch"
-  "011-wxWidgets-3.1.2-Enable-wxUSE_GRAPHICS_DIRECT2D.patch"
+  001-wxWidgets-3.0.2-relocate-prefix-in-bin-wx-config.patch
+  005-wxWidgets-3.1.3-Remove-WX_LIBS_STATIC-from-m4.patch
+  021-wxWidgets-3.1.2-Disable-wxUSE_GRAPHICS_DIRECT2D.patch
   022-wxWidgets-3.1.3-Add-wxHAS_XLOCALE_SUPPORT-to-mingw64.patch
+  023-wxWidgets-3.1.2-setup-wxUSE_GRAPHICS_DIRECT2D.patch
 )
 sha256sums=('SKIP'
             'ca0c2ddbf34654589c79dc859adf8fd9bf20388789bb098c7456cfe81b3ea805'
             '4a4828f0c9cdc638cffde6a30b5dfb14283719acc9e89e19de8ec2d5a80a5aec'
-            '953830a8c4c3dd97a17426ced9f9b91608c50a1c255d2f843455e1b09bba0ef8'
-            '3b76ecbd5fb1bad3f9af21a50d8518bd447b935fb12497fe9b1ac15f940529a7'
-)
+            '99fb6781e9d0fcb3dc910a53245596c5b677c9df00214ff76ffece6bbc8779d9'
+            '94be2da4172c93331707979713d980f7f649dcf14add3d40b34e116549a23003'
+            '132a58955e8ed566b8d169a8ce97d6c361b0591f26c22a1a6d8307d22eafe999')
 
 if [[ "$_enable_webview" == "yes" ]] ; then
     _webview_option=--enable-webview
@@ -105,12 +102,14 @@ prepare() {
   # MSys2 fails to set WX_LIBS_STATIC correctly; removed to see if something breaks.
   ${GIT_AM} ${srcdir}/005-wxWidgets-3.1.3-Remove-WX_LIBS_STATIC-from-m4.patch
 
-  # This patch helps with building Code::Blocks IDE; since, it
+  # These patches helps with building Code::Blocks IDE; since, it
   #   wants wxUSE_GRAPHICS_DIRECT2D to be true
-  ${GIT_AM} ${srcdir}/011-wxWidgets-3.1.2-Enable-wxUSE_GRAPHICS_DIRECT2D.patch
+  ${GIT_AM} ${srcdir}/021-wxWidgets-3.1.2-Disable-wxUSE_GRAPHICS_DIRECT2D.patch
+  ${GIT_AM} ${srcdir}/023-wxWidgets-3.1.2-setup-wxUSE_GRAPHICS_DIRECT2D.patch
   # ${srcdir}/${_sourcedir}/build/update-setup-h
 
-  ${GIT_AM} ${srcdir}/022-wxWidgets-3.1.3-Add-wxHAS_XLOCALE_SUPPORT-to-mingw64.patch
+  # MinGW64 GCC stdlib is missing library functions 2019-11-26
+  #${GIT_AM} ${srcdir}/022-wxWidgets-3.1.3-Add-wxHAS_XLOCALE_SUPPORT-to-mingw64.patch
 }
 
 build() {
@@ -325,85 +324,6 @@ if [[ "$_build_gtk3" == "yes" ]] ; then
   make -j1 DESTDIR="${srcdir}"/install-gtk3-${CARCH} install
 fi
 
-if [[ "$_build_gtk2" == "yes" ]] ; then
-  [[ -d "${srcdir}"/build-gtk2-${CARCH}-static ]] && rm -rf "${srcdir}"/build-gtk2-${CARCH}-static
-  mkdir -p "${srcdir}"/build-gtk2-${CARCH}-static && cd "${srcdir}"/build-gtk2-${CARCH}-static
-
-  ../${_sourcedir}/configure \
-    --prefix=${MINGW_PREFIX} \
-    --host=${MINGW_CHOST} \
-    --target=${MINGW_CHOST} \
-    --build=${MINGW_CHOST} \
-    --with-gtk=2 \
-    --with-cxx=14 \
-    --enable-std_string \
-    --enable-std_iostreams \
-    --enable-std_containers_compat \
-    --with-regex=builtin \
-    --with-libpng=sys \
-    --with-libjpeg=sys \
-    --with-libtiff=sys \
-    --disable-shared \
-    --disable-precomp-headers \
-    --enable-textfile \
-    --enable-iff \
-    --enable-permissive \
-    --enable-unicode \
-    --enable-graphics_ctx \
-    --enable-regkey \
-    --disable-mediactrl \
-    --disable-webview \
-    --without-gtkprint \
-    --enable-dynamicloader \
-    "${_debug_options[@]}" \
-    --without-opengl
-
-  sed -i 's/#define wxUSE_XLOCALE       0/#define wxUSE_XLOCALE       1/' lib/wx/include/gtk2-unicode-static-${_wx_basever}/wx/setup.h
-
-  make -j1 #VERBOSE=1
-
-  [[ -d "${srcdir}"/install-gtk2-${CARCH}-static ]] && rm -rf "${srcdir}"/install-gtk2-${CARCH}-static
-  make -j1 DESTDIR="${srcdir}"/install-gtk2-${CARCH}-static install
-
-  [[ -d "${srcdir}"/build-gtk2-${CARCH} ]] && rm -rf "${srcdir}"/build-gtk2-${CARCH}
-  mkdir -p "${srcdir}"/build-gtk2-${CARCH} && cd "${srcdir}"/build-gtk2-${CARCH}
-
-  ../${_sourcedir}/configure \
-    --prefix=${MINGW_PREFIX} \
-    --host=${MINGW_CHOST} \
-    --target=${MINGW_CHOST} \
-    --build=${MINGW_CHOST} \
-    --with-gtk=2 \
-    --with-cxx=14 \
-    --enable-std_string \
-    --enable-std_iostreams \
-    --enable-std_containers_compat \
-    --with-regex=builtin \
-    --with-libpng=sys \
-    --with-libjpeg=sys \
-    --with-libtiff=sys \
-    --enable-shared \
-    --enable-textfile \
-    --enable-iff \
-    --enable-permissive \
-    --enable-unicode \
-    --enable-graphics_ctx \
-    --enable-regkey \
-    --disable-mediactrl \
-    --disable-webview \
-    --without-gtkprint \
-    --enable-dynamicloader \
-    "${_debug_options[@]}" \
-    --without-opengl
-
-  sed -i 's/#define wxUSE_XLOCALE       0/#define wxUSE_XLOCALE       1/' lib/wx/include/gtk2-unicode-${_wx_basever}/wx/setup.h
-
-  make -j1 #VERBOSE=1
-
-  [[ -d "${srcdir}"/install-gtk2-${CARCH} ]] && rm -rf "${srcdir}"/install-gtk2-${CARCH}
-  make -j1 DESTDIR="${srcdir}"/install-gtk2-${CARCH} install
-fi
-
 if [[ "$_build_msw" == "yes" ]] ; then
   [[ -d "${srcdir}"/build-msw-${CARCH}-static ]] && rm -rf "${srcdir}"/build-msw-${CARCH}-static
   mkdir -p "${srcdir}"/build-msw-${CARCH}-static && cd "${srcdir}"/build-msw-${CARCH}-static
@@ -486,10 +406,6 @@ if [[ "$1" == "${srcdir}/build-msw-${CARCH}" ]] ; then
   cd "${srcdir}"/build-msw-${CARCH}/samples && make clean --jobs=1
   cd "${srcdir}"/build-msw-${CARCH}/tests && make clean --jobs=1
 
-elif [[ "$1" == "${srcdir}/build-gtk2-${CARCH}" ]] ; then
-
-  cd "${srcdir}"/build-gtk2-${CARCH}/samples && make  clean --jobs=1
-
 elif [[ "$1" == "${srcdir}/build-gtk3-${CARCH}" ]] ; then
 
   cd "${srcdir}"/build-gtk3-${CARCH}/samples            && make  clean --jobs=1
@@ -510,10 +426,6 @@ if [[ "$1" == "${srcdir}/build-msw-${CARCH}" ]] ; then
 
   cd "${srcdir}"/build-msw-${CARCH}/tests     && make -k --jobs=1 || true
 
-elif [[ "$1" == "${srcdir}/build-gtk2-${CARCH}" ]] ; then
-
-  cd "${srcdir}"/build-gtk2-${CARCH}/samples  && make -k --jobs=1 || true
-
 elif [[ "$1" == "${srcdir}/build-gtk3-${CARCH}" ]] ; then
 
   cd "${srcdir}"/build-gtk3-${CARCH}/samples  && make -k --jobs=1 || true
@@ -531,9 +443,6 @@ check() {
   if [[ "$_do_check_in_package" != "yes" ]] ; then
     if [[ "$_build_msw" == "yes" ]] ; then
       _check "${srcdir}/build-msw-${CARCH}"
-    fi
-    if [[ "$_build_gtk2" == "yes" ]] ; then
-      _check "${srcdir}/build-gtk2-${CARCH}"
     fi
     if [[ "$_build_gtk3" == "yes" ]] ; then
       _check "${srcdir}/build-gtk3-${CARCH}"
@@ -567,76 +476,6 @@ _package_wxmsw() {
 
   cp --recursive "${srcdir}"/install-msw-${CARCH}-static/${MINGW_PREFIX}/ ${pkgdir}/
   cp --recursive "${srcdir}"/install-msw-${CARCH}/${MINGW_PREFIX}/ ${pkgdir}/
-
-  mv ${pkgdir}${MINGW_PREFIX}/lib/*.dll ${pkgdir}${MINGW_PREFIX}/bin
-
-  # Rename files
-  mv ${pkgdir}${MINGW_PREFIX}/bin/wx-config{,-${_wx_basever}}
-  mv ${pkgdir}${MINGW_PREFIX}/share/aclocal/wxwin.m4 ${pkgdir}${MINGW_PREFIX}/share/aclocal/wxwin${_wx_basever}.m4
-
-  # Add missing exe file extension (Likely bug in wxWidgets makefile)
-  mv ${pkgdir}${MINGW_PREFIX}/bin/wxrc-${_wx_basever} ${pkgdir}${MINGW_PREFIX}/bin/wxrc-${_wx_basever}.exe
-
-  # Remove conflicting files; that do not need to be renamed
-  rm -f ${pkgdir}${MINGW_PREFIX}/bin/wxrc.exe
-
-  # Remove conflicting files; that I have no idea how to rename
-  rm -fr ${pkgdir}${MINGW_PREFIX}/share/bakefile
-  rm -fr ${pkgdir}${MINGW_PREFIX}/share/locale
-
-  # Remove files
-  rm -fr ${pkgdir}${MINGW_PREFIX}/bin/wx-config
-
-  # License files
-  cd "${srcdir}"/${_sourcedir}/docs
-  install -Dm644 preamble.txt "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/preamble.txt"
-  install -Dm644 licence.txt  "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/licence.txt"
-  install -Dm644 licendoc.txt "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/licendoc.txt"
-  install -Dm644 lgpl.txt     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/lgpl.txt"
-  install -Dm644 gpl.txt      "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/gpl.txt"
-  install -Dm644 xserver.txt  "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/xserver.txt"
-}
-
-_package_wxgtk2() {
-  pkgdesc="GTK+ implementation of wxWidgets API for GUI (mingw-w64)"
-  provides=("${MINGW_PACKAGE_PREFIX}-wxgtk${_wx_basever}-gtk2" "${MINGW_PACKAGE_PREFIX}-wxWidgets${_wx_basever}")
-  conflicts=("${MINGW_PACKAGE_PREFIX}-wxWidgets${_wx_basever}")
-  depends=(
-    "${MINGW_PACKAGE_PREFIX}-gtk2"
-    "${MINGW_PACKAGE_PREFIX}-gdk-pixbuf2"
-    #$([[ "$_enable_mediactrl" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-gstreamer")
-    "${MINGW_PACKAGE_PREFIX}-gcc-libs"
-    "${MINGW_PACKAGE_PREFIX}-expat"
-    "${MINGW_PACKAGE_PREFIX}-libjpeg-turbo"
-    "${MINGW_PACKAGE_PREFIX}-libpng"
-    "${MINGW_PACKAGE_PREFIX}-libtiff"
-    "${MINGW_PACKAGE_PREFIX}-xz"
-    "${MINGW_PACKAGE_PREFIX}-zlib"
-  )
-  local MINGW_PREFIX_WIN=$(cygpath -am ${MINGW_PREFIX})
-
-  if [[ "$_do_check_in_package" == "yes" ]] ; then
-    _clean_check "${srcdir}/build-gtk2-${CARCH}"
-    _check "${srcdir}/build-gtk2-${CARCH}"
-  fi
-
-  cp --recursive "${srcdir}"/install-gtk2-${CARCH}-static/${MINGW_PREFIX}/ ${pkgdir}/
-  cp --recursive "${srcdir}"/install-gtk2-${CARCH}/${MINGW_PREFIX}/ ${pkgdir}/
-
-  # Copy files missing from wxGTK install; not sure if all these files are needed by wxGTK/win
-  cp "${srcdir}"/${_sourcedir}/include/wx/msw/wx.rc      ${pkgdir}${MINGW_PREFIX}/include/wx-${_wx_basever}/wx/msw/wx.rc
-  cp "${srcdir}"/${_sourcedir}/include/wx/msw/rcdefs.h   ${pkgdir}${MINGW_PREFIX}/include/wx-${_wx_basever}/wx/msw/rcdefs.h
-  cp "${srcdir}"/${_sourcedir}/include/wx/msw/*.cur      ${pkgdir}${MINGW_PREFIX}/include/wx-${_wx_basever}/wx/msw/
-  cp "${srcdir}"/${_sourcedir}/include/wx/msw/*.ico      ${pkgdir}${MINGW_PREFIX}/include/wx-${_wx_basever}/wx/msw/
-  cp "${srcdir}"/${_sourcedir}/include/wx/msw/*.bmp      ${pkgdir}${MINGW_PREFIX}/include/wx-${_wx_basever}/wx/msw/
-  cp "${srcdir}"/${_sourcedir}/include/wx/msw/*.manifest ${pkgdir}${MINGW_PREFIX}/include/wx-${_wx_basever}/wx/msw/
-
-  # Need to create patch for wxWidgets to add "wx/msw/init.h" to wxGTK/win build
-  cp "${srcdir}"/${_sourcedir}/include/wx/msw/init.h     ${pkgdir}${MINGW_PREFIX}/include/wx-${_wx_basever}/wx/msw/init.h
-
-
-  sed -s "s|-L${MINGW_PREFIX_WIN}/lib||g" -i "${pkgdir}"${MINGW_PREFIX}/lib/wx/config/gtk2-unicode-${_wx_basever}
-  sed -s "s|-L${MINGW_PREFIX_WIN}/lib||g" -i "${pkgdir}"${MINGW_PREFIX}/lib/wx/config/gtk2-unicode-static-${_wx_basever}
 
   mv ${pkgdir}${MINGW_PREFIX}/lib/*.dll ${pkgdir}${MINGW_PREFIX}/bin
 
@@ -807,8 +646,6 @@ _package_wxqt() {
 
 package_mingw-w64-i686-wxmsw3.1-git() { _package_wxmsw; }
 package_mingw-w64-x86_64-wxmsw3.1-git() { _package_wxmsw; }
-package_mingw-w64-i686-wxgtk3.1-gtk2-git() { _package_wxgtk2; }
-package_mingw-w64-x86_64-wxgtk3.1-gtk2-git() { _package_wxgtk2; }
 package_mingw-w64-i686-wxgtk3.1-gtk3-git() { _package_wxgtk3; }
 package_mingw-w64-x86_64-wxgtk3.1-gtk3-git() { _package_wxgtk3; }
 package_mingw-w64-i686-wxqt3.1-git() { _package_wxqt; }

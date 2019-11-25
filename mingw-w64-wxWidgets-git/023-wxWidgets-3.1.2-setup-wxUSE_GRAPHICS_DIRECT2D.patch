@@ -1,23 +1,21 @@
-From 8cc55070384894979181fa67eeb1593e723fbf75 Mon Sep 17 00:00:00 2001
+From b206fab883c3063f393908afac6e00591ca05f9d Mon Sep 17 00:00:00 2001
 From: Tim Stahlhut <stahta01@gmail.com>
 Date: Fri, 31 May 2019 00:44:59 -0400
-Subject: Enable and disable wxUSE_GRAPHICS_DIRECT2D
+Subject: Setup wxUSE_GRAPHICS_DIRECT2D
 
 ---
  build/cmake/setup.h.in     | 2 +-
  include/wx/gtk/setup0.h    | 2 +-
- include/wx/msw/chkconf.h   | 7 +++++++
- include/wx/msw/gccpriv.h   | 8 ++++++++
  include/wx/msw/setup0.h    | 2 +-
  include/wx/msw/setup_inc.h | 2 +-
  setup.h.in                 | 2 +-
- 7 files changed, 20 insertions(+), 5 deletions(-)
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/build/cmake/setup.h.in b/build/cmake/setup.h.in
-index af4d7326d7..7813c2d089 100644
+index 2b5c6a29a1..244f695500 100644
 --- a/build/cmake/setup.h.in
 +++ b/build/cmake/setup.h.in
-@@ -671,7 +671,7 @@
+@@ -668,7 +668,7 @@
  
  #define wxUSE_GRAPHICS_GDIPLUS wxUSE_GRAPHICS_CONTEXT
  
@@ -27,10 +25,10 @@ index af4d7326d7..7813c2d089 100644
  #else
      #cmakedefine01 wxUSE_GRAPHICS_DIRECT2D
 diff --git a/include/wx/gtk/setup0.h b/include/wx/gtk/setup0.h
-index c581562c6b..f974144c1c 100644
+index 8355fbf4b3..0358364736 100644
 --- a/include/wx/gtk/setup0.h
 +++ b/include/wx/gtk/setup0.h
-@@ -1587,7 +1587,7 @@
+@@ -1580,7 +1580,7 @@
  // Recommended setting: 1 for faster and better quality graphics under Windows
  // 7 and later systems (if wxUSE_GRAPHICS_GDIPLUS is also enabled, earlier
  // systems will fall back on using GDI+).
@@ -39,48 +37,11 @@ index c581562c6b..f974144c1c 100644
      #define wxUSE_GRAPHICS_DIRECT2D wxUSE_GRAPHICS_CONTEXT
  #else
      #define wxUSE_GRAPHICS_DIRECT2D 0
-diff --git a/include/wx/msw/chkconf.h b/include/wx/msw/chkconf.h
-index baf02f7e4e..d2c53dd267 100644
---- a/include/wx/msw/chkconf.h
-+++ b/include/wx/msw/chkconf.h
-@@ -191,6 +191,13 @@
-     #define wxUSE_SECRETSTORE 0
- #endif
- 
-+#if defined(__MINGW32__) && wxUSE_GRAPHICS_DIRECT2D
-+    #if (!wxCHECK_MINGW64_VERSION(7, 0) && !wxCHECK_MINGW32_VERSION(7, 0))
-+        #undef wxUSE_GRAPHICS_DIRECT2D
-+        #define wxUSE_GRAPHICS_DIRECT2D 0
-+    #endif
-+#endif
-+
- #if wxUSE_SPINCTRL
- #   if !wxUSE_SPINBTN
- #       ifdef wxABORT_ON_CONFIG_ERROR
-diff --git a/include/wx/msw/gccpriv.h b/include/wx/msw/gccpriv.h
-index d0b47e4183..1a6977bfe0 100644
---- a/include/wx/msw/gccpriv.h
-+++ b/include/wx/msw/gccpriv.h
-@@ -65,6 +65,14 @@
-         #endif
-     #endif
- 
-+    #ifdef __MINGW64_TOOLCHAIN__
-+        #define wxCHECK_MINGW64_VERSION( major, minor ) \
-+ ( ( ( __MINGW64_VERSION_MAJOR > (major) ) \
-+      || ( __MINGW64_VERSION_MAJOR == (major) && __MINGW64_VERSION_MINOR >= (minor) ) ) )
-+    #else
-+        #define wxCHECK_MINGW64_VERSION( major, minor ) (0)
-+    #endif
-+
-     #define wxCHECK_MINGW32_VERSION( major, minor ) \
-  ( ( ( __MINGW32_MAJOR_VERSION > (major) ) \
-       || ( __MINGW32_MAJOR_VERSION == (major) && __MINGW32_MINOR_VERSION >= (minor) ) ) )
 diff --git a/include/wx/msw/setup0.h b/include/wx/msw/setup0.h
-index 7b502ecbef..e20062df06 100644
+index 22ba9acf3b..46a3825b0c 100644
 --- a/include/wx/msw/setup0.h
 +++ b/include/wx/msw/setup0.h
-@@ -1587,7 +1587,7 @@
+@@ -1580,7 +1580,7 @@
  // Recommended setting: 1 for faster and better quality graphics under Windows
  // 7 and later systems (if wxUSE_GRAPHICS_GDIPLUS is also enabled, earlier
  // systems will fall back on using GDI+).
@@ -90,7 +51,7 @@ index 7b502ecbef..e20062df06 100644
  #else
      #define wxUSE_GRAPHICS_DIRECT2D 0
 diff --git a/include/wx/msw/setup_inc.h b/include/wx/msw/setup_inc.h
-index c764432c9d..bb40e7c866 100644
+index c764432c9d..eca28b9486 100644
 --- a/include/wx/msw/setup_inc.h
 +++ b/include/wx/msw/setup_inc.h
 @@ -30,7 +30,7 @@
@@ -103,10 +64,10 @@ index c764432c9d..bb40e7c866 100644
  #else
      #define wxUSE_GRAPHICS_DIRECT2D 0
 diff --git a/setup.h.in b/setup.h.in
-index b33699b9c9..56c64a0d76 100644
+index b2491c00df..ea2a32b1da 100644
 --- a/setup.h.in
 +++ b/setup.h.in
-@@ -671,7 +671,7 @@
+@@ -668,7 +668,7 @@
  
  #define wxUSE_GRAPHICS_GDIPLUS wxUSE_GRAPHICS_CONTEXT
  

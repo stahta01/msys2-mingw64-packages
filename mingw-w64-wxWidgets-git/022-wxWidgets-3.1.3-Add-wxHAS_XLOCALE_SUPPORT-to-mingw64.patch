@@ -4,9 +4,10 @@ Date: Sun, 24 Nov 2019 22:37:33 -0500
 Subject: code: Add wxHAS_XLOCALE_SUPPORT to mingw64
 
 ---
+ include/wx/features.h  | 2 +-
  include/wx/xlocale.h   | 2 +-
  src/common/xlocale.cpp | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/include/wx/xlocale.h b/include/wx/xlocale.h
 index 476a3a737e..d8e0b20541 100644
@@ -34,4 +35,17 @@ index e8095a1132..7dd33bb5a8 100644
  
  // ----------------------------------------------------------------------------
  // implementation using MSVC locale API
+diff --git a/include/wx/features.h b/include/wx/features.h
+index 46ac758cd7..407368dac3 100644
+--- a/include/wx/features.h
++++ b/include/wx/features.h
+@@ -77,7 +77,7 @@
+    functions.  Otherwise, we implement them ourselves to only support the
+    'C' locale */
+ #if defined(HAVE_LOCALE_T) || \
+-    (wxCHECK_VISUALC_VERSION(8))
++    (wxCHECK_VISUALC_VERSION(8) || wxCHECK_MINGW64_VERSION(8, 0))
+     #define wxHAS_XLOCALE_SUPPORT
+ #else
+     #undef wxHAS_XLOCALE_SUPPORT
 -- 
