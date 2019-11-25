@@ -1,0 +1,24 @@
+From fbe231da8a802c73f9893b699490a49a59ed37aa Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Wed, 23 Oct 2019 16:24:51 -0400
+Subject: relocate prefix in wx-config
+
+---
+ wx-config.in | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/wx-config.in b/wx-config.in
+index d132e3182f..6a2440ffb7 100755
+--- a/wx-config.in
++++ b/wx-config.in
+@@ -401,6 +401,9 @@ is_cross()  { [ "x@cross_compiling@" = "xyes" ]; }
+ 
+ # Determine the base directories we require.
+ prefix=${input_option_prefix-${this_prefix:-@prefix@}}
++if [ "x${MSYSTEM}" = "xMINGW32" ] || [ "x${MSYSTEM}" = "xMINGW64" ]; then
++    prefix=$(cygpath -m ${prefix})
++fi
+ exec_prefix=${input_option_exec_prefix-${input_option_prefix-${this_exec_prefix:-@exec_prefix@}}}
+ wxconfdir="@libdir@/wx/config"
+ 
+-- 

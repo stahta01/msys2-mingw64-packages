@@ -1,0 +1,37 @@
+From 721abe2115c924363a23bf2f244797c116b2cde3 Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Sun, 24 Nov 2019 22:37:33 -0500
+Subject: code: Add wxHAS_XLOCALE_SUPPORT to mingw64
+
+---
+ include/wx/xlocale.h   | 2 +-
+ src/common/xlocale.cpp | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/wx/xlocale.h b/include/wx/xlocale.h
+index 476a3a737e..d8e0b20541 100644
+--- a/include/wx/xlocale.h
++++ b/include/wx/xlocale.h
+@@ -36,7 +36,7 @@
+ // The platform-specific locale type
+ // If wxXLocale_t is not defined, then only "C" locale support is provided
+ #ifdef wxHAS_XLOCALE_SUPPORT
+-    #if wxCHECK_VISUALC_VERSION(8)
++    #if wxCHECK_VISUALC_VERSION(8) || wxCHECK_MINGW64_VERSION(8, 0)
+         typedef _locale_t wxXLocale_t;
+         #define wxXLOCALE_IDENT(name) _ ## name
+     #elif defined(HAVE_LOCALE_T)
+diff --git a/src/common/xlocale.cpp b/src/common/xlocale.cpp
+index e8095a1132..7dd33bb5a8 100644
+--- a/src/common/xlocale.cpp
++++ b/src/common/xlocale.cpp
+@@ -100,7 +100,7 @@ wxXLocale::wxXLocale(wxLanguage lang)
+ }
+ #endif // wxUSE_INTL
+ 
+-#if wxCHECK_VISUALC_VERSION(8)
++#if wxCHECK_VISUALC_VERSION(8) || wxCHECK_MINGW64_VERSION(8, 0)
+ 
+ // ----------------------------------------------------------------------------
+ // implementation using MSVC locale API
+-- 
