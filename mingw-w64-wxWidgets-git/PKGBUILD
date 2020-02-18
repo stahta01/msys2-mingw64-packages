@@ -27,7 +27,7 @@ pkgname=(
   $([[ "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxgtk${_wx_basever}-gtk3${_namesuffix}")
   $([[ "$_build_qt" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxqt${_wx_basever}${_namesuffix}")
 )
-pkgver=3.1.4.0.r67768.c4.g08db475a7f
+pkgver=3.1.4.0.r67783.c4.g8c574e5c2b
 pkgrel=1
 pkgdesc="A C++ library that lets developers create applications for Windows, Linux and UNIX (mingw-w64)"
 arch=('any')
@@ -133,6 +133,10 @@ build() {
   #   --without-gtkprint
   #   --enable-dynamicloader    # Did not seem to make a difference
   #
+  # Configure options added to avoid errors under wxQT/Win:
+  #   --disable-wxdib           # dnd sample build error
+  #                             #   and other run-time errors
+  #
   # Configure options added to avoid warnings:
   #   --with-regex=builtin
   #
@@ -176,6 +180,7 @@ if [[ "$_build_qt" == "yes" ]] ; then
     --target=${MINGW_CHOST} \
     --build=${MINGW_CHOST} \
     --with-qt \
+    --disable-wxdib \
     --with-cxx=14 \
     --enable-std_string \
     --enable-std_iostreams \
@@ -408,11 +413,13 @@ if [[ "$1" == "${srcdir}/build-msw-${CARCH}" ]] ; then
 
 elif [[ "$1" == "${srcdir}/build-gtk3-${CARCH}" ]] ; then
 
-  cd "${srcdir}"/build-gtk3-${CARCH}/samples            && make  clean --jobs=1
+  cd "${srcdir}"/build-gtk3-${CARCH}/samples            && make clean --jobs=1
+  cd "${srcdir}"/build-gtk3-${CARCH}/tests              && make clean --jobs=1
 
 elif [[ "$1" == "${srcdir}/build-qt-${CARCH}" ]] ; then
 
-  cd "${srcdir}"/build-qt-${CARCH}/samples            && make  clean --jobs=1
+  cd "${srcdir}"/build-qt-${CARCH}/samples            && make clean --jobs=1
+  cd "${srcdir}"/build-qt-${CARCH}/tests              && make clean --jobs=1
 
 else
   echo "Unknown check clean folder"
@@ -423,16 +430,17 @@ _check() {
 if [[ "$1" == "${srcdir}/build-msw-${CARCH}" ]] ; then
 
   cd "${srcdir}"/build-msw-${CARCH}/samples   && make -k --jobs=1 || true
-
   cd "${srcdir}"/build-msw-${CARCH}/tests     && make -k --jobs=1 || true
 
 elif [[ "$1" == "${srcdir}/build-gtk3-${CARCH}" ]] ; then
 
   cd "${srcdir}"/build-gtk3-${CARCH}/samples  && make -k --jobs=1 || true
+  cd "${srcdir}"/build-gtk3-${CARCH}/tests    && make -k --jobs=1 || true
 
 elif [[ "$1" == "${srcdir}/build-qt-${CARCH}" ]] ; then
 
   cd "${srcdir}"/build-qt-${CARCH}/samples    && make -k --jobs=1 || true
+  cd "${srcdir}"/build-qt-${CARCH}/tests      && make -k --jobs=1 || true
 
 else
   echo "Unknown check folder"
@@ -511,6 +519,7 @@ _package_wxgtk3() {
   provides=("${MINGW_PACKAGE_PREFIX}-wxgtk${_wx_basever}-gtk3" "${MINGW_PACKAGE_PREFIX}-wxWidgets${_wx_basever}")
   conflicts=("${MINGW_PACKAGE_PREFIX}-wxWidgets${_wx_basever}")
   depends=(
+    "${MINGW_PACKAGE_PREFIX}-libnotify"
     "${MINGW_PACKAGE_PREFIX}-gtk3"
     "${MINGW_PACKAGE_PREFIX}-gdk-pixbuf2"
     #$([[ "$_enable_mediactrl" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-gstreamer")
