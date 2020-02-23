@@ -1,0 +1,67 @@
+# Maintainer: Alexey Pavlov <Alexpux@gmail.com>
+
+_realname=doxygen
+pkgver=1.8.8
+pkgbase=mingw-w64-${_realname}${pkgver}
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}${pkgver}")
+pkgrel=1
+pkgdesc="A documentation system for C++, C, Java, IDL and PHP (mingw-w64)"
+arch=('any')
+url="http://www.doxygen.org/"
+options=('strip' 'staticlibs')
+license=('GPL')
+depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs"
+         "${MINGW_PACKAGE_PREFIX}-libiconv"
+         "${MINGW_PACKAGE_PREFIX}-recode"
+         "${MINGW_PACKAGE_PREFIX}-sqlite3")
+makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
+             'flex2.5'
+             "${MINGW_PACKAGE_PREFIX}-ghostscript"
+             "${MINGW_PACKAGE_PREFIX}-python3")
+conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+source=("https://downloads.sourceforge.net/project/doxygen/rel-1.8.8/doxygen-1.8.8.src.tar.gz"
+        'doxygen-configure-python2.patch'
+        'force-win32.patch'
+        'tmake-unquote.patch'
+        'fix-casts.patch'
+        'remove-extra-slashes.patch')
+sha256sums=('d1f978350527a2338199c9abb78f76f10746520de5dc4ae4cdd27fc9df9b19b8'
+            '57bb631ca37dc71ef58b1ac6ba61bffd959247b8aeaf6ce91d40f8f19a2b59a8'
+            'f9962985ce79602b8e13aea0c253a60803fae4c77ffc6c4a2d5bec1d2c70797c'
+            'e5096488dee3a3d46bf6b7704de15b84cbf30b9337a389141068d526bedc93bf'
+            '0870d7534f5cb1d60dfdaf392c018c26dc952f1d5e66a25536fe58573439386f'
+            'a16f106cc8fa639dd99f3ec5bae0c1adf64804d6287c9aa68e79618438e0bea5')
+noextract=(${_realname}-${pkgver}.src.tar.gz)
+
+prepare() {
+  cd ${srcdir}
+  [[ -d $srcdir/${_realname}-${pkgver} ]] || tar -xzvf ${startdir}/${_realname}-${pkgver}.src.tar.gz -C $srcdir
+  cd "${srcdir}/${_realname}-${pkgver}"
+
+  #patch -p1 -i "${srcdir}/doxygen-configure-python2.patch"
+  patch --forward -p1 -i "${srcdir}/force-win32.patch"
+  patch --forward -p1 -i "${srcdir}/tmake-unquote.patch"
+  patch --forward -p1 -i "${srcdir}/fix-casts.patch"
+  patch --forward -p1 -i "${srcdir}/remove-extra-slashes.patch"
+}
+
+build() {
+  export QTDIR=${MINGW_PREFIX}
+  cd ${srcdir}/${_realname}-${pkgver}
+  ./configure \
+    --platform win32-mingw \
+    --prefix ${MINGW_PREFIX} \
+    --bison /usr/bin/bison \
+    --with-sqlite3 \
+    --sqlite3-path ${MINGW_PREFIX} \
+    --shared
+  make
+}
+
+package() {
+  cd ${srcdir}/${_realname}-${pkgver}
+
+  #make DESTDIR="${pkgdir}" install
+  make INSTALL="${pkgdir}${MINGW_PREFIX}" MAN1DIR=share/man/man1 install
+  #rm -r "${pkgdir}${MINGW_PREFIX}"/share/man
+}
