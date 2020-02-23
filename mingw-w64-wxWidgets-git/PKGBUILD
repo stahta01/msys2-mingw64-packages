@@ -18,7 +18,6 @@ _namesuffix="-git"
 pkgbase=mingw-w64-${_basename}${_namesuffix}
 _enable_mediactrl=yes     # Not yet used in building wxGTK/Win or wxQt/Win
 _enable_webview=yes       # Not used in building wxGTK/Win
-_do_check_in_package=no   # Set to no for normal build
 _build_msw=yes            # Set to yes for normal build
 _build_gtk3=yes            # Set to no for normal build
 _build_qt=yes              # Set to no for normal build
@@ -27,7 +26,7 @@ pkgname=(
   $([[ "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxgtk${_wx_basever}-gtk3${_namesuffix}")
   $([[ "$_build_qt" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxqt${_wx_basever}${_namesuffix}")
 )
-pkgver=3.1.4.0.r67783.c4.g8c574e5c2b
+pkgver=3.1.4.0.r67788.c4.gfce84f7bd0
 pkgrel=1
 pkgdesc="A C++ library that lets developers create applications for Windows, Linux and UNIX (mingw-w64)"
 arch=('any')
@@ -219,6 +218,7 @@ if [[ "$_build_qt" == "yes" ]] ; then
     --target=${MINGW_CHOST} \
     --build=${MINGW_CHOST} \
     --with-qt \
+    --disable-wxdib \
     --with-cxx=14 \
     --enable-std_string \
     --enable-std_iostreams \
@@ -405,27 +405,6 @@ if [[ "$_build_msw" == "yes" ]] ; then
 fi
 }
 
-_clean_check() {
-if [[ "$1" == "${srcdir}/build-msw-${CARCH}" ]] ; then
-
-  cd "${srcdir}"/build-msw-${CARCH}/samples && make clean --jobs=1
-  cd "${srcdir}"/build-msw-${CARCH}/tests && make clean --jobs=1
-
-elif [[ "$1" == "${srcdir}/build-gtk3-${CARCH}" ]] ; then
-
-  cd "${srcdir}"/build-gtk3-${CARCH}/samples            && make clean --jobs=1
-  cd "${srcdir}"/build-gtk3-${CARCH}/tests              && make clean --jobs=1
-
-elif [[ "$1" == "${srcdir}/build-qt-${CARCH}" ]] ; then
-
-  cd "${srcdir}"/build-qt-${CARCH}/samples            && make clean --jobs=1
-  cd "${srcdir}"/build-qt-${CARCH}/tests              && make clean --jobs=1
-
-else
-  echo "Unknown check clean folder"
-fi
-}
-
 _check() {
 if [[ "$1" == "${srcdir}/build-msw-${CARCH}" ]] ; then
 
@@ -448,7 +427,6 @@ fi
 }
 
 check() {
-  if [[ "$_do_check_in_package" != "yes" ]] ; then
     if [[ "$_build_msw" == "yes" ]] ; then
       _check "${srcdir}/build-msw-${CARCH}"
     fi
@@ -458,9 +436,6 @@ check() {
     if [[ "$_build_qt" == "yes" ]] ; then
       _check "${srcdir}/build-qt-${CARCH}"
     fi
-  else
-    echo "check operation will run during package"
-  fi
 }
 
 _package_wxmsw() {
@@ -476,11 +451,6 @@ _package_wxmsw() {
     "${MINGW_PACKAGE_PREFIX}-xz"
     "${MINGW_PACKAGE_PREFIX}-zlib"
   )
-
-  if [[ "$_do_check_in_package" == "yes" ]] ; then
-    _clean_check "${srcdir}/build-msw-${CARCH}"
-    _check "${srcdir}/build-msw-${CARCH}"
-  fi
 
   cp --recursive "${srcdir}"/install-msw-${CARCH}-static/${MINGW_PREFIX}/ ${pkgdir}/
   cp --recursive "${srcdir}"/install-msw-${CARCH}/${MINGW_PREFIX}/ ${pkgdir}/
@@ -532,11 +502,6 @@ _package_wxgtk3() {
     "${MINGW_PACKAGE_PREFIX}-zlib"
   )
   local MINGW_PREFIX_WIN=$(cygpath -am ${MINGW_PREFIX})
-
-  if [[ "$_do_check_in_package" == "yes" ]] ; then
-    _clean_check "${srcdir}/build-gtk3-${CARCH}"
-    _check "${srcdir}/build-gtk3-${CARCH}"
-  fi
 
   cp --recursive "${srcdir}"/install-gtk3-${CARCH}-static/${MINGW_PREFIX}/ ${pkgdir}/
   cp --recursive "${srcdir}"/install-gtk3-${CARCH}/${MINGW_PREFIX}/ ${pkgdir}/
@@ -600,11 +565,6 @@ _package_wxqt() {
     "${MINGW_PACKAGE_PREFIX}-zlib"
   )
   local MINGW_PREFIX_WIN=$(cygpath -am ${MINGW_PREFIX})
-
-  if [[ "$_do_check_in_package" == "yes" ]] ; then
-    _clean_check "${srcdir}/build-qt-${CARCH}"
-    _check "${srcdir}/build-qt-${CARCH}"
-  fi
 
   cp --recursive "${srcdir}"/install-qt-${CARCH}-static/${MINGW_PREFIX}/ ${pkgdir}/
   cp --recursive "${srcdir}"/install-qt-${CARCH}/${MINGW_PREFIX}/ ${pkgdir}/
