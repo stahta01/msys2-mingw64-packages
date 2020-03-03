@@ -1,0 +1,105 @@
+From adc0d970facfa3a1be029f4c98223f0dd11b5960 Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Thu, 19 Mar 2020 00:28:29 -0400
+Subject: Reorder wxHAVE_DPI_INDEPENDENT_PIXELS guards
+
+These guard changes are needed under wxGTK/Win32 to prevent this warning:
+include/wx/window.h:2047:1: warning: 'static wxSize wxWindowBase::FromDIP(const wxSize&, const wxWindowBase*)' redeclared without dllimport attribute after being referenced with dll linkage
+---
+ include/wx/window.h | 45 ++++++++++++++++++++-------------------------
+ 1 file changed, 20 insertions(+), 25 deletions(-)
+
+diff --git a/include/wx/window.h b/include/wx/window.h
+index 814e9487ad..016982b3e4 100644
+--- a/include/wx/window.h
++++ b/include/wx/window.h
+@@ -48,6 +48,12 @@
+     #define wxUSE_MENUS_NATIVE wxUSE_MENUS
+ #endif // __WXUNIVERSAL__/!__WXUNIVERSAL__
+ 
++#if defined(__WXGTK3__)
++    #define wxHAVE_DPI_INDEPENDENT_PIXELS
++#elif defined(__WXMAC__)
++    #define wxHAVE_DPI_INDEPENDENT_PIXELS
++#endif
++
+ // ----------------------------------------------------------------------------
+ // forward declarations
+ // ----------------------------------------------------------------------------
+@@ -965,7 +971,14 @@ public:
+         // horizontal and vertical directions, but this could, in principle,
+         // change too, so prefer using the overloads taking wxPoint or wxSize.
+ 
++#ifdef wxHAVE_DPI_INDEPENDENT_PIXELS
++    static wxSize FromDIP(const wxSize& sz, const wxWindowBase* WXUNUSED(w))
++    {
++        return sz;
++    }
++#else
+     static wxSize FromDIP(const wxSize& sz, const wxWindowBase* w);
++#endif // wxHAVE_DPI_INDEPENDENT_PIXELS
+     static wxPoint FromDIP(const wxPoint& pt, const wxWindowBase* w)
+     {
+         const wxSize sz = FromDIP(wxSize(pt.x, pt.y), w);
+@@ -980,7 +993,14 @@ public:
+     wxPoint FromDIP(const wxPoint& pt) const { return FromDIP(pt, this); }
+     int FromDIP(int d) const { return FromDIP(d, this); }
+ 
++#ifdef wxHAVE_DPI_INDEPENDENT_PIXELS
++    static wxSize ToDIP(const wxSize& sz, const wxWindowBase* WXUNUSED(w))
++    {
++        return sz;
++    }
++#else
+     static wxSize ToDIP(const wxSize& sz, const wxWindowBase* w);
++#endif // wxHAVE_DPI_INDEPENDENT_PIXELS
+     static wxPoint ToDIP(const wxPoint& pt, const wxWindowBase* w)
+     {
+         const wxSize sz = ToDIP(wxSize(pt.x, pt.y), w);
+@@ -1980,9 +2000,6 @@ inline void wxWindowBase::SetInitialBestSize(const wxSize& size)
+         #define wxWindowGTK wxWindow
+     #endif // wxUniv
+     #include "wx/gtk/window.h"
+-    #ifdef __WXGTK3__
+-        #define wxHAVE_DPI_INDEPENDENT_PIXELS
+-    #endif
+ #elif defined(__WXGTK__)
+     #ifdef __WXUNIVERSAL__
+         #define wxWindowNative wxWindowGTK
+@@ -2007,7 +2024,6 @@ inline void wxWindowBase::SetInitialBestSize(const wxSize& size)
+         #define wxWindowMac wxWindow
+     #endif // wxUniv
+     #include "wx/osx/window.h"
+-    #define wxHAVE_DPI_INDEPENDENT_PIXELS
+ #elif defined(__WXQT__)
+     #ifdef __WXUNIVERSAL__
+         #define wxWindowNative wxWindowQt
+@@ -2037,27 +2053,6 @@ inline wxWindow *wxWindowBase::GetGrandParent() const
+     return m_parent ? m_parent->GetParent() : NULL;
+ }
+ 
+-#ifdef wxHAVE_DPI_INDEPENDENT_PIXELS
+-
+-// FromDIP() and ToDIP() become trivial in this case, so make them inline to
+-// avoid any overhead.
+-
+-/* static */
+-inline wxSize
+-wxWindowBase::FromDIP(const wxSize& sz, const wxWindowBase* WXUNUSED(w))
+-{
+-    return sz;
+-}
+-
+-/* static */
+-inline wxSize
+-wxWindowBase::ToDIP(const wxSize& sz, const wxWindowBase* WXUNUSED(w))
+-{
+-    return sz;
+-}
+-
+-#endif // wxHAVE_DPI_INDEPENDENT_PIXELS
+-
+ // ----------------------------------------------------------------------------
+ // global functions
+ // ----------------------------------------------------------------------------
+-- 
