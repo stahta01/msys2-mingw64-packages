@@ -21,7 +21,7 @@ _build_ANSI=no            # Set to no for normal build
 _build_gtk3=no            # Set to no for normal build
 
 pkgname=(
-  ${MINGW_PACKAGE_PREFIX}-wxconfig${_wx_basever}${_namesuffix}
+  ${MINGW_PACKAGE_PREFIX}-wxconfig${_namesuffix}
   $([[ "$_build_msw" == "yes" ]]  && echo "${MINGW_PACKAGE_PREFIX}-wxmsw${_wx_basever}${_namesuffix}")
   $([[ "$_build_ANSI" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxmsw${_wx_basever}-ANSI${_namesuffix}")
   $([[ "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxgtk${_wx_basever}-gtk3${_namesuffix}")
@@ -377,20 +377,14 @@ _package_wxconfig() {
   pkgdesc="config script for wxWidgets library (mingw-w64)"
   groups=("${MINGW_PACKAGE_PREFIX}-wxWidgets")
   provides=("${MINGW_PACKAGE_PREFIX}-wxconfig")
-  conflicts=(
-    "${MINGW_PACKAGE_PREFIX}-wxconfig"
-    "${MINGW_PACKAGE_PREFIX}-wxconfig${_wx_basever}"
-  )
+  conflicts=("${MINGW_PACKAGE_PREFIX}-wxconfig")
   mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
   if [[ "$_build_msw" == "yes" ]] ; then
     cp ${srcdir}/install-msw-${CARCH}${MINGW_PREFIX}/bin/wx-config ${pkgdir}${MINGW_PREFIX}/bin/wx-config
-    cp ${srcdir}/install-msw-${CARCH}${MINGW_PREFIX}/bin/wx-config ${pkgdir}${MINGW_PREFIX}/bin/wx-config-${_wx_basever}
   elif [[ "$_build_ANSI" == "yes" ]] ; then
     cp ${srcdir}/install-msw-${CARCH}-ANSI${MINGW_PREFIX}/bin/wx-config ${pkgdir}${MINGW_PREFIX}/bin/wx-config
-    cp ${srcdir}/install-msw-${CARCH}-ANSI${MINGW_PREFIX}/bin/wx-config ${pkgdir}${MINGW_PREFIX}/bin/wx-config-${_wx_basever}
   elif [[ "$_build_gtk3" == "yes" ]] ; then
     cp ${srcdir}/install-gtk3-${CARCH}${MINGW_PREFIX}/bin/wx-config ${pkgdir}${MINGW_PREFIX}/bin/wx-config
-    cp ${srcdir}/install-gtk3-${CARCH}${MINGW_PREFIX}/bin/wx-config ${pkgdir}${MINGW_PREFIX}/bin/wx-config-${_wx_basever}
   fi
 }
 
@@ -523,5 +517,5 @@ package_mingw-w64-i686-wxmsw3.0-git() { _package_wxmsw; }
 package_mingw-w64-x86_64-wxmsw3.0-git() { _package_wxmsw; }
 package_mingw-w64-i686-wxmsw3.0-ANSI-git() { _package_wxmsw_ANSI; }
 package_mingw-w64-x86_64-wxmsw3.0-ANSI-git() { _package_wxmsw_ANSI; }
-package_mingw-w64-i686-wxconfig3.0-git() { _package_wxconfig; }
-package_mingw-w64-x86_64-wxconfig3.0-git() { _package_wxconfig; }
+package_mingw-w64-i686-wxconfig-git() { _package_wxconfig; }
+package_mingw-w64-x86_64-wxconfig-git() { _package_wxconfig; }
