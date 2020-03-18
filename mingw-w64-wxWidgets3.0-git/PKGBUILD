@@ -26,7 +26,7 @@ pkgname=(
   $([[ "$_build_ANSI" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxmsw${_wx_basever}-ANSI${_namesuffix}")
   $([[ "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxgtk${_wx_basever}-gtk3${_namesuffix}")
 )
-pkgver=3.0.5.0.r59276.c8.g1a40ebc107
+pkgver=3.0.5.0.r59287.c9.g7a8e201787
 pkgrel=1
 arch=('any')
 license=("custom:wxWindows")
@@ -45,6 +45,7 @@ checkdepends=("${MINGW_PACKAGE_PREFIX}-cppunit")
 source=(
   ${_sourcedir}::"git+https://github.com/wxWidgets/wxWidgets.git#branch=WX_3_0_BRANCH"
 
+  # MSys2 only patch
   001-wxWidgets-3.0.2-relocate-prefix-in-bin-wx-config.patch
 
   # Trying to see if ArchLinux patch works
@@ -54,17 +55,19 @@ source=(
   003-wxWidgets-3.0.2-fix-access-sample.patch
   004-wxWidgets-3.0.3-Added-wxUSE_WXDIB-guard-to-Toolbar-sample.patch
 
-  # Remove runtime macro used by apps to link against wxWidgets
-  # The WX_LIBS_STATIC macro is very old and deprecated
-  # The macro does not work correctly under MSys2
-  # Possible shell scripting compatibilty issue
-  005-wxWidgets-3.0.2-Remove-WX_LIBS_STATIC-from-m4.patch
-
   # backported patches from wxWidgets repo.
   006-wxWidgets-3.0.4-add-GDK_WINDOWING_WIN32-guards.patch
   007-wxWidgets-3.0.4-Configure-changes-needed-for-wxGTK-win32.patch
   008-wxWidgets-3.0.3-Changed-value-of-resource-macros.patch
   009-wxWidgets-3.0.4-Only-change-wxUSE_CHECKLISTBOX-to-0-when-MSW-toolkit.patch
+
+# Patches rejected by wxWidgets team
+  031-wxWidgets-3.0.4-Add-deprecated-wxWidgets-1.xx-compatibility-message.patch
+  # Remove runtime macro used by apps to link against wxWidgets
+  # The WX_LIBS_STATIC macro is very old and deprecated
+  # The macro does not work correctly under MSys2
+  # Possible shell scripting compatibilty issue
+  005-wxWidgets-3.0.2-Remove-WX_LIBS_STATIC-from-m4.patch
 )
 
 sha256sums=('SKIP'
@@ -72,11 +75,12 @@ sha256sums=('SKIP'
             '8e1eb9d6a13c7c52ffaec6093e40d1f3c397a220fd881274ce3ef54fc39525d9'
             'edd5f72e6ee36d7687ce242ca7561f54f934542f0541dea0564b470aa9fd61e5'
             '7aa39f4cd943e3f7ffc0e2c8e87f70f70ed7a49c89ccc3b658e6daa2ace9e189'
-            '2483e7f13e5312199c01c64f999aaf9ca28661c3bc46f10043e6dd42d63ab272'
             '2402876275cd77463d8d1d8f60525c0d335b7a02a1d5eea6437938b7ab0ed91f'
             'a8f6742dc9760ca8b11f5b4e8f7dc2aa3f5645fae8dd6a18f6e5e983f3ef3413'
             '031a78586989c4c0d3c6b10d522d66c1d1a4f24dedca82886a0f4743e62c3f0b'
-            '4dc50c848f9fe6e37ced83eaa384d2cc227186732a67db7f461306105df6ad7e')
+            '4dc50c848f9fe6e37ced83eaa384d2cc227186732a67db7f461306105df6ad7e'
+            '07c269b3b6ca863b03eed1f1115012005adf468dd3fcef3a3a8764a00d689da9'
+            '2483e7f13e5312199c01c64f999aaf9ca28661c3bc46f10043e6dd42d63ab272')
 
 # Declare global variables; begin with underscore to avoid name conflicts
 _git_base_commit=
@@ -116,6 +120,8 @@ prepare() {
   ${GIT_AM} "${srcdir}"/007-wxWidgets-3.0.4-Configure-changes-needed-for-wxGTK-win32.patch
   ${GIT_AM} "${srcdir}"/008-wxWidgets-3.0.3-Changed-value-of-resource-macros.patch
   ${GIT_AM} "${srcdir}"/009-wxWidgets-3.0.4-Only-change-wxUSE_CHECKLISTBOX-to-0-when-MSW-toolkit.patch
+
+  ${GIT_AM} "${srcdir}"/031-wxWidgets-3.0.4-Add-deprecated-wxWidgets-1.xx-compatibility-message.patch
 }
 
 build() {

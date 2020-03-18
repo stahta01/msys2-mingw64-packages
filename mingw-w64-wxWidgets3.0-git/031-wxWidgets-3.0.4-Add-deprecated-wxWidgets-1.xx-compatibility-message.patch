@@ -1,0 +1,66 @@
+From b53317d0b846ddb6d4d1b51b5d643d533012d41a Mon Sep 17 00:00:00 2001
+From: Tim S <stahta01@users.sourceforge.net>
+Date: Sat, 31 Oct 2015 14:00:30 -0400
+Subject: Add deprecated wxWidgets 1.xx compatibility message
+
+Before before deprecated code add:
+  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+---
+ include/wx/string.h | 12 ++++++++++++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/include/wx/string.h b/include/wx/string.h
+index 2824b280bf..1cfed7b0e7 100644
+--- a/include/wx/string.h
++++ b/include/wx/string.h
+@@ -2280,37 +2286,49 @@ public:
+     { return cmp == exact ? Cmp(psz) : CmpNoCase(psz); }
+ 
+     // use length()
++  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+   size_t Length() const { return length(); }
+     // Count the number of characters
+   int Freq(wxUniChar ch) const;
+     // use MakeLower
++  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+   void LowerCase() { MakeLower(); }
+     // use MakeUpper
++  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+   void UpperCase() { MakeUpper(); }
+     // use Trim except that it doesn't change this string
+   wxString Strip(stripType w = trailing) const;
+ 
+     // use Find (more general variants not yet supported)
+   size_t Index(const wxChar* psz) const { return Find(psz); }
+   size_t Index(wxUniChar ch)         const { return Find(ch);  }
+     // use Truncate
++  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+   wxString& Remove(size_t pos) { return Truncate(pos); }
+   wxString& RemoveLast(size_t n = 1) { return Truncate(length() - n); }
+ 
+   wxString& Remove(size_t nStart, size_t nLen)
+       { return (wxString&)erase( nStart, nLen ); }
+ 
+     // use Find()
++  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+   int First( wxUniChar ch ) const { return Find(ch); }
++  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+   int First( wxUniCharRef ch ) const { return Find(ch); }
++  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+   int First( char ch ) const { return Find(ch); }
++  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+   int First( unsigned char ch ) const { return Find(ch); }
++  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+   int First( wchar_t ch ) const { return Find(ch); }
++  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+   int First( const wxString& str ) const { return Find(str); }
++  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+   int Last( wxUniChar ch ) const { return Find(ch, true); }
+   bool Contains(const wxString& str) const { return Find(str) != wxNOT_FOUND; }
+ 
+     // use empty()
++  wxDEPRECATED_MSG("This is a wxWidgets 1.xx compatibility function; you should not use it in new code.")
+   bool IsNull() const { return empty(); }
+ 
+   // std::string compatibility functions
+-- 
