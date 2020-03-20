@@ -13,7 +13,7 @@ provides=(
 conflicts=(
   "${MINGW_PACKAGE_PREFIX}-${_realname}"
 )
-pkgver=17.12.r11742
+pkgver=17.12.r11979
 pkgrel=1
 url='http://codeblocks.org/'
 pkgdesc='Cross-platform C/C++ IDE (mingw-w64)'
