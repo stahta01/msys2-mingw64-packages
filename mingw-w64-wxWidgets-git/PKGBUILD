@@ -26,7 +26,7 @@ pkgname=(
   $([[ "$_build_gtk3" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxgtk${_wx_basever}-gtk3${_namesuffix}")
   $([[ "$_build_qt" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxqt${_wx_basever}${_namesuffix}")
 )
-pkgver=3.1.4.0.r67861.c6.g335565076e
+pkgver=3.1.4.0.r67888.c6.gd781764d6d
 pkgrel=1
 pkgdesc="A C++ library that lets developers create applications for Windows, Linux and UNIX (mingw-w64)"
 arch=('any')
@@ -198,10 +198,12 @@ if [[ "$_build_qt" == "yes" ]] ; then
     --enable-std_string \
     --enable-std_iostreams \
     --enable-std_containers_compat \
+    --with-libpng=builtin \
+    --with-libjpeg=builtin \
+    --with-libtiff=builtin \
+    --with-zlib=builtin \
+    --with-expat=builtin \
     --with-regex=builtin \
-    --with-libpng=sys \
-    --with-libjpeg=sys \
-    --with-libtiff=sys \
     --without-xtest \
     --disable-shared \
     --disable-precomp-headers \
@@ -276,10 +278,12 @@ if [[ "$_build_gtk3" == "yes" ]] ; then
     --enable-std_string \
     --enable-std_iostreams \
     --enable-std_containers_compat \
+    --with-libpng=builtin \
+    --with-libjpeg=builtin \
+    --with-libtiff=builtin \
+    --with-zlib=builtin \
+    --with-expat=builtin \
     --with-regex=builtin \
-    --with-libpng=sys \
-    --with-libjpeg=sys \
-    --with-libtiff=sys \
     --without-xtest \
     --disable-shared \
     --disable-precomp-headers \
@@ -357,10 +361,12 @@ if [[ "$_build_msw" == "yes" ]] ; then
       --enable-std_string \
       --enable-std_iostreams \
       --enable-std_containers_compat \
+      --with-libpng=builtin \
+      --with-libjpeg=builtin \
+      --with-libtiff=builtin \
+      --with-zlib=builtin \
+      --with-expat=builtin \
       --with-regex=builtin \
-      --with-libpng=sys \
-      --with-libjpeg=sys \
-      --with-libtiff=sys \
       --disable-shared \
       --disable-precomp-headers \
       --enable-iff \
@@ -473,7 +479,7 @@ _package_wxmsw() {
   mv ${pkgdir}${MINGW_PREFIX}/lib/*.dll ${pkgdir}${MINGW_PREFIX}/bin
 
   # Rename files
-  mv ${pkgdir}${MINGW_PREFIX}/bin/wx-config{,-${_wx_basever}
+  mv ${pkgdir}${MINGW_PREFIX}/bin/wx-config{,-${_wx_basever}}
   mv ${pkgdir}${MINGW_PREFIX}/share/aclocal/wxwin.m4 ${pkgdir}${MINGW_PREFIX}/share/aclocal/wxwin${_wx_basever}.m4
 
   # Add missing exe file extension (Likely bug in wxWidgets makefile)
@@ -539,7 +545,7 @@ _package_wxgtk3() {
   mv ${pkgdir}${MINGW_PREFIX}/lib/*.dll ${pkgdir}${MINGW_PREFIX}/bin
 
   # Rename files
-  mv ${pkgdir}${MINGW_PREFIX}/bin/wx-config{,-${_wx_basever}
+  mv ${pkgdir}${MINGW_PREFIX}/bin/wx-config{,-${_wx_basever}}
   mv ${pkgdir}${MINGW_PREFIX}/share/aclocal/wxwin.m4 ${pkgdir}${MINGW_PREFIX}/share/aclocal/wxwin${_wx_basever}.m4
 
   # Add missing exe file extension (Likely bug in wxWidgets makefile)
@@ -602,7 +608,7 @@ _package_wxqt() {
   mv ${pkgdir}${MINGW_PREFIX}/lib/*.dll ${pkgdir}${MINGW_PREFIX}/bin
 
   # Rename files
-  mv ${pkgdir}${MINGW_PREFIX}/bin/wx-config{,-${_wx_basever}
+  mv ${pkgdir}${MINGW_PREFIX}/bin/wx-config{,-${_wx_basever}}
   mv ${pkgdir}${MINGW_PREFIX}/share/aclocal/wxwin.m4 ${pkgdir}${MINGW_PREFIX}/share/aclocal/wxwin${_wx_basever}.m4
 
   # Add missing exe file extension (Likely bug in wxWidgets makefile)
