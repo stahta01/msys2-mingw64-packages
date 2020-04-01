@@ -31,7 +31,8 @@ pkgrel=1
 arch=('any')
 license=("custom:wxWindows")
 url="https://www.wxwidgets.org/"
-options=('strip' 'staticlibs' 'buildflags' '!debug')
+options=('!strip' 'staticlibs' 'buildflags' 'debug')
+#options=('strip' 'staticlibs' 'buildflags' '!debug')
 makedepends=(
   "git"
   "make"
