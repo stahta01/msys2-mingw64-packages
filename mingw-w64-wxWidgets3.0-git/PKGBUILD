@@ -179,10 +179,12 @@ if [[ "$_build_gtk3" == "yes" ]] ; then
     --target=${MINGW_CHOST} \
     --build=${MINGW_CHOST} \
     --with-gtk=3 \
+    --with-libpng=builtin \
+    --with-libjpeg=builtin \
+    --with-libtiff=builtin \
+    --with-zlib=builtin \
+    --with-expat=builtin \
     --with-regex=builtin \
-    --with-libpng=sys \
-    --with-libjpeg=sys \
-    --with-libtiff=sys \
     --enable-static \
     --disable-shared \
     --enable-textfile \
@@ -274,10 +276,12 @@ if [[ "$_build_msw" == "yes" ]] ; then
     --target=${MINGW_CHOST} \
     --build=${MINGW_CHOST} \
     --with-msw \
+    --with-libpng=builtin \
+    --with-libjpeg=builtin \
+    --with-libtiff=builtin \
+    --with-zlib=builtin \
+    --with-expat=builtin \
     --with-regex=builtin \
-    --with-libpng=sys \
-    --with-libjpeg=sys \
-    --with-libtiff=sys \
     --enable-static \
     --disable-shared \
     --enable-iff \
@@ -307,10 +311,12 @@ if [[ "$_build_ANSI" == "yes" ]] ; then
     --target=${MINGW_CHOST} \
     --build=${MINGW_CHOST} \
     --with-msw \
+    --with-libpng=builtin \
+    --with-libjpeg=builtin \
+    --with-libtiff=builtin \
+    --with-zlib=builtin \
+    --with-expat=builtin \
     --with-regex=builtin \
-    --with-libpng=sys \
-    --with-libjpeg=sys \
-    --with-libtiff=sys \
     --enable-static \
     --disable-shared \
     --enable-iff \
