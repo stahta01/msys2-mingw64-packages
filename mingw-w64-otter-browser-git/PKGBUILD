@@ -1,0 +1,103 @@
+####
+#
+# Based on packages found at these URLs
+#     https://www.archlinux.org/packages/community/x86_64/otter-browser/
+#     https://github.com/msys2/MINGW-packages/blob/master/mingw-w64-PKGBUILD-templates/PKGBUILD.CMake-tarball
+#
+# Contributor: Tim Stahlhut <stahta01@gmail.com>
+#
+####
+#
+# Normal 64 bit build command
+#   MINGW_INSTALLS=mingw64 makepkg-mingw -sLf
+
+_basename=otter-browser
+_namesuffix="-git"
+_sourcedir=${_basename}-git
+pkgbase=mingw-w64-${_basename}${_namesuffix}
+pkgname=(${MINGW_PACKAGE_PREFIX}-${_basename}{,-nowebengine}${_namesuffix})
+pkgver=1.0.81.r8519.c0.g22fe47022
+pkgrel=1
+pkgdesc="Web browser aiming to recreate the best aspects of the classic Opera (12.x) UI using Qt5"
+arch=('any')
+url="https://otter-browser.org/"
+license=('GPL3')
+depends=(
+ ${MINGW_PACKAGE_PREFIX}-desktop-file-utils
+ ${MINGW_PACKAGE_PREFIX}-hicolor-icon-theme
+ ${MINGW_PACKAGE_PREFIX}-hunspell
+ ${MINGW_PACKAGE_PREFIX}-qt5
+ ${MINGW_PACKAGE_PREFIX}-qtwebkit
+)
+makedepends=(${MINGW_PACKAGE_PREFIX}-cmake 'git')
+options=('strip' 'staticlibs')
+source=(${_sourcedir}::"git+https://github.com/OtterBrowser/otter-browser.git#branch=master")
+sha256sums=('SKIP')
+
+# Declare global variables; begin with underscore to avoid name conflicts
+_git_base_commit=
+
+pkgver() {
+  cd ${srcdir}/${_sourcedir}
+  _ver="$(cat CMakeLists.txt | grep -m3 -e MAJOR_VERSION -e MINOR_VERSION -e PATCH_VERSION | cut -d ')' -f1 | grep -o "[[:digit:]]*" | paste -sd'.')"
+  #echo "${_ver}.r$(git rev-list --count HEAD).g$(git rev-parse --short HEAD)"
+  printf "%s.r%s.c%s.g%s" "$_ver" $(git rev-list --count ${_git_base_commit}) $(git rev-list --count ${_git_base_commit}..HEAD) $(git rev-parse --short ${_git_base_commit})
+}
+
+prepare() {
+  cd ${srcdir}/${_sourcedir}
+
+  _git_base_commit=$(git rev-parse HEAD)
+}
+
+build() {
+  [[ -d "${srcdir}"/build-${CARCH} ]] && rm -rf "${srcdir}"/build-${CARCH}
+  mkdir -p "${srcdir}"/build-${CARCH} && cd "${srcdir}"/build-${CARCH}
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake \
+      -G'MSYS Makefiles' \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      ../${_sourcedir} 
+  make
+
+  [[ -d "${srcdir}"/build-${CARCH}-nowebengine ]] && rm -rf "${srcdir}"/build-${CARCH}-nowebengine
+  mkdir -p "${srcdir}"/build-${CARCH}-nowebengine && cd "${srcdir}"/build-${CARCH}-nowebengine
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake \
+      -G'MSYS Makefiles' \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      -DENABLE_QTWEBENGINE=OFF \
+      ../${_sourcedir}
+  make
+}
+
+_package_otter-browser() {
+  cd "${srcdir}"/build-${CARCH}
+  make DESTDIR="$pkgdir" install
+  install -Dm644 ../${_sourcedir}/packaging/${_basename}.appdata.xml "$pkgdir${MINGW_PREFIX}/share/metainfo/${_basename}.appdata.xml"
+}
+
+_package_otter-browser-nowebengine() {
+  pkgdesc+=' without WebEngine support'
+  depends=(
+    ${MINGW_PACKAGE_PREFIX}-desktop-file-utils
+    ${MINGW_PACKAGE_PREFIX}-hicolor-icon-theme
+    ${MINGW_PACKAGE_PREFIX}-hunspell
+    ${MINGW_PACKAGE_PREFIX}-qt5
+  )
+  conflicts=(${MINGW_PACKAGE_PREFIX}-${_basename})
+  provides=(${MINGW_PACKAGE_PREFIX}-${_basename}=$pkgver)
+
+  cd "${srcdir}"/build-${CARCH}-nowebengine
+  make DESTDIR="$pkgdir" install
+
+  # Ignore package by AppStream to avoid duplicated IDs
+  echo 'X-AppStream-Ignore=true' >> "$pkgdir${MINGW_PREFIX}/share/applications/$pkgbase.desktop"
+}
+
+package_mingw-w64-i686-otter-browser-git() { _package_otter-browser; }
+package_mingw-w64-x86_64-otter-browser-git() { _package_otter-browser; }
+package_mingw-w64-i686-otter-browser-nowebengine-git() { _package_otter-browser-nowebengine; }
+package_mingw-w64-x86_64-otter-browser-nowebengine-git() { _package_otter-browser-nowebengine; }
