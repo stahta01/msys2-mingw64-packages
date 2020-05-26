@@ -104,16 +104,6 @@ prepare() {
 }
 
 build() {
-  #[[ -d "${srcdir}"/build-${CARCH} ]] && rm -rf "${srcdir}"/build-${CARCH}
-  #mkdir -p "${srcdir}"/build-${CARCH} && cd "${srcdir}"/build-${CARCH}
-
-  #MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
-    #${MINGW_PREFIX}/bin/cmake \
-      #-G'MSYS Makefiles' \
-      #-DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
-      #../${_sourcedir} 
-  #make
-
   [[ -d "${srcdir}"/build-${CARCH}-nowebengine ]] && rm -rf "${srcdir}"/build-${CARCH}-nowebengine
   mkdir -p "${srcdir}"/build-${CARCH}-nowebengine && cd "${srcdir}"/build-${CARCH}-nowebengine
 
@@ -124,12 +114,6 @@ build() {
       -DENABLE_QTWEBENGINE=OFF \
       ../${_sourcedir}
   make
-}
-
-_package_otter-browser() {
-  cd "${srcdir}"/build-${CARCH}
-  make DESTDIR="$pkgdir" install
-  install -Dm644 ../${_sourcedir}/packaging/${_basename}.appdata.xml "$pkgdir${MINGW_PREFIX}/share/metainfo/${_basename}.appdata.xml"
 }
 
 _package_otter-browser-nowebengine() {
@@ -151,13 +135,9 @@ _package_otter-browser-nowebengine() {
 }
 
 if [[ "$_sourcepkgver" = "dev" || "$_sourcepkgver" = "branch" ]]; then
-  package_mingw-w64-i686-otter-browser-git() { _package_otter-browser; }
-  package_mingw-w64-x86_64-otter-browser-git() { _package_otter-browser; }
   package_mingw-w64-i686-otter-browser-nowebengine-git() { _package_otter-browser-nowebengine; }
   package_mingw-w64-x86_64-otter-browser-nowebengine-git() { _package_otter-browser-nowebengine; }
 else
-  package_mingw-w64-i686-otter-browser() { _package_otter-browser; }
-  package_mingw-w64-x86_64-otter-browser() { _package_otter-browser; }
   package_mingw-w64-i686-otter-browser-nowebengine() { _package_otter-browser-nowebengine; }
   package_mingw-w64-x86_64-otter-browser-nowebengine() { _package_otter-browser-nowebengine; }
 fi
