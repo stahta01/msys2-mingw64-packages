@@ -3,8 +3,9 @@
 # Contributor: Alexey Borzenkov <snaury@gmail.com>
 # Contributor: Ray Donnelly <mingw.android@gmail.com>
 
-_enable_fortran=no
+_threads="win32"
 _enable_ada=no
+_enable_fortran=no
 _enable_objc=no
 _realname=gcc
 pkgname=(
@@ -34,20 +35,21 @@ source=("ftp://gcc.gnu.org/pub/gcc/releases/${_realname}-${pkgver}/${_realname}-
     104-gcc-4.5-Fix-texi-docs-syntax-errors.patch
     111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
     121-gcc-4.0-handle-use-mingw-ansi-stdio.patch
+    122-gcc-4.5-config.gcc-i-34567-86-mingw-x86_64-mingw-Choose-t-mi.patch
     131-gcc-4.0-windows-lrealpath-no-force-lowercase-nor-backslash.patch
     132-gcc-4.3-dont-escape-arguments-that-dont-need-it-in-pex-win32.c.patch
     141-gcc-4.4-ktietz-libgomp.patch
     161-gcc-4.0-cfns-fix-mismatch-in-gnu_inline-attributes.patch)
 sha256sums=('eef3f0456db8c3d992cbb51d5d32558190bc14f3bc19383dd93acc27acc6befc'
-            '0b0ce23fac47b910a5a6f427c2f777c97976859acbbda8f6f44d2c5596a45ca2'
+            'f06ab1dd6d585fcc2540dfadfeac0b9f898dc7395ff1a04756676aec32a835ca'
             '3183d14c89aaafc1d5c4bc2d9c09812bc229e82cb91d9e1e7c3b9b5da25eb42a'
             'ef56680941f2e7393acd31f747a3927db738fa92d409913736908fc283af29d3'
             '748a921674a663532426bfca61856517610154564cfed6949629ba62fdeb8de3'
+            'b83c472712483003b84fbcd99b1d802c07b2008f2fead6bca6be199de89584ae'
             '1ae38b261fc68c332051ee3080dd4914323be16b50152a6ed7e14cca938e10af'
             '918152eb9c4654b7538dbe91e4ab939aab26e1b14f6a995492b9fccefff334fc'
             'fc1318f0ff236ea158f9123fe80ade0a64bd97cf68a0c076349bd501341a03f7'
             '714e18e8e1a89c149dfabde6eb6dd0a7518590b7a911643de761b6d31c7acd2d')
-_threads="posix"
 
 prepare() {
   cd ${srcdir}/${_realname}-${pkgver}
@@ -81,6 +83,10 @@ prepare() {
   local MINGW_NATIVE_PREFIX=$(cygpath -am ${MINGW_PREFIX}/${MINGW_CHOST})
   sed -i "s/\\/mingw\\//${MINGW_NATIVE_PREFIX//\//\\/}\\//g" gcc/config/i386/mingw32.h
 
+  # FIX "The directory that should contain system headers does not exist: /mingw/include"
+  sed -i "s|/mingw/include|/mingw32/include|g" gcc/config/i386/t-mingw-w32
+  sed -i "s|/mingw/include|/mingw64/include|g" gcc/config/i386/t-mingw-w64
+
   patch -Np1 -i ${srcdir}/102-gcc-4.5-fix-compile-issue-with-gcc-9.patch
 
   patch -Np1 -i ${srcdir}/104-gcc-4.5-Fix-texi-docs-syntax-errors.patch
@@ -103,6 +109,7 @@ prepare() {
   patch -Np1 -i ${srcdir}/141-gcc-4.4-ktietz-libgomp.patch
 
   patch -Np1 -i ${srcdir}/121-gcc-4.0-handle-use-mingw-ansi-stdio.patch
+  patch -Np1 -i ${srcdir}/122-gcc-4.5-config.gcc-i-34567-86-mingw-x86_64-mingw-Choose-t-mi.patch
 }
 
 build() {
@@ -169,7 +176,7 @@ build() {
     #sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
   #fi
 
-  make all
+  make -j1 all
 
   make -j1 DESTDIR=${srcdir} install
   if [ "$_enable_ada" == "yes" ]; then
