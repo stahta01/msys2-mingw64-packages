@@ -1,0 +1,101 @@
+From 604c93fb470c093da42d963b3fe549631f7dbc79 Mon Sep 17 00:00:00 2001
+From: Tim S <tim.stahlhut@gmail.com>
+Date: Wed, 1 Sep 2010 16:00:57 +0000
+Subject: windows: Backport SVN 163738
+
+2010-09-01  Kai Tietz  <kai.tietz@onevision.com>
+
+        PR/target 45452
+        * config/i386/cygwin.h: Change order of specified import libraries.
+        * config/i386/mingw32.h: Likewise.
+        * config/i386/t-cygwin: Likewise.
+        * config/i386/t-mingw32: Likewise.
+        * config/i386/t-mingw-w32: Likewise.
+        * config/i386/t-mingw-w64: Likewise.
+
+From-SVN: r163738
+---
+ gcc/config/i386/cygwin.h    | 2 +-
+ gcc/config/i386/mingw32.h   | 2 +-
+ gcc/config/i386/t-cygwin    | 2 +-
+ gcc/config/i386/t-mingw-w32 | 2 +-
+ gcc/config/i386/t-mingw-w64 | 2 +-
+ gcc/config/i386/t-mingw32   | 2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/gcc/config/i386/cygwin.h b/gcc/config/i386/cygwin.h
+index c365f6603cd..63077f0e4d7 100644
+--- a/gcc/config/i386/cygwin.h
++++ b/gcc/config/i386/cygwin.h
+@@ -83,7 +83,7 @@ along with GCC; see the file COPYING3.  If not see
+   %{!mno-cygwin:-lcygwin} \
+   %{mno-cygwin:%{mthreads:-lmingwthrd} -lmingw32} \
+   %{mwindows:-lgdi32 -lcomdlg32} \
+-  -luser32 -lkernel32 -ladvapi32 -lshell32"
++  -ladvapi32 -lshell32 -luser32 -lkernel32"
+ 
+ /* To implement C++ function replacement we always wrap the cxx
+    malloc-like operators.  See N2800 #17.6.4.6 [replacement.functions] */
+diff --git a/gcc/config/i386/mingw32.h b/gcc/config/i386/mingw32.h
+index 0258ca0a245..dac1d96a5a7 100644
+--- a/gcc/config/i386/mingw32.h
++++ b/gcc/config/i386/mingw32.h
+@@ -77,7 +77,7 @@ along with GCC; see the file COPYING3.  If not see
+    kernel32.  */
+ #undef LIB_SPEC
+ #define LIB_SPEC "%{pg:-lgmon} %{mwindows:-lgdi32 -lcomdlg32} \
+-                  -luser32 -lkernel32 -ladvapi32 -lshell32"
++                  -ladvapi32 -lshell32 -luser32 -lkernel32"
+ 
+ /* Weak symbols do not get resolved if using a Windows dll import lib.
+    Make the unwind registration references strong undefs.  */
+diff --git a/gcc/config/i386/t-cygwin b/gcc/config/i386/t-cygwin
+index 8fec6f761d7..af91aa5cdb6 100644
+--- a/gcc/config/i386/t-cygwin
++++ b/gcc/config/i386/t-cygwin
+@@ -34,7 +34,7 @@ cygwin2.o: $(srcdir)/config/i386/cygwin2.c $(CONFIG_H) $(SYSTEM_H) coretypes.h \
+ 	$(srcdir)/config/i386/cygwin2.c
+ 
+ # Cygwin-specific parts of LIB_SPEC
+-SHLIB_LC = -lcygwin -luser32 -lkernel32 -ladvapi32 -lshell32
++SHLIB_LC = -lcygwin -ladvapi32 -lshell32 -luser32 -lkernel32
+ 
+ # We have already included one of the t-{dw2,sjlj}-eh fragments for EH_MODEL
+ SHLIB_EH_EXTENSION = $(subst -dw2,,-$(EH_MODEL))
+diff --git a/gcc/config/i386/t-mingw-w32 b/gcc/config/i386/t-mingw-w32
+index 62d6330fabb..fc0c1224bdd 100644
+--- a/gcc/config/i386/t-mingw-w32
++++ b/gcc/config/i386/t-mingw-w32
+@@ -6,7 +6,7 @@ MULTILIB_DIRNAMES = 64 32
+ MULTILIB_OSDIRNAMES = ../lib64 ../lib
+ 
+ # MinGW-specific parts of LIB_SPEC
+-SHLIB_LC = -lmingw32 -lmingwex -lmoldname -lmsvcrt -luser32 -lkernel32 -ladvapi32 -lshell32
++SHLIB_LC = -lmingw32 -lmingwex -lmoldname -lmsvcrt -ladvapi32 -lshell32 -luser32 -lkernel32
+ 
+ LIBGCC = stmp-multilib
+ INSTALL_LIBGCC = install-multilib
+diff --git a/gcc/config/i386/t-mingw-w64 b/gcc/config/i386/t-mingw-w64
+index b0106e5e64b..d5b2d0e3d4d 100644
+--- a/gcc/config/i386/t-mingw-w64
++++ b/gcc/config/i386/t-mingw-w64
+@@ -6,7 +6,7 @@ MULTILIB_DIRNAMES = 64 32
+ MULTILIB_OSDIRNAMES = ../lib ../lib32
+ 
+ # MinGW-specific parts of LIB_SPEC
+-SHLIB_LC = -lmingw32 -lmingwex -lmoldname -lmsvcrt -luser32 -lkernel32 -ladvapi32 -lshell32
++SHLIB_LC = -lmingw32 -lmingwex -lmoldname -lmsvcrt -ladvapi32 -lshell32 -luser32 -lkernel32
+ 
+ LIBGCC = stmp-multilib
+ INSTALL_LIBGCC = install-multilib
+diff --git a/gcc/config/i386/t-mingw32 b/gcc/config/i386/t-mingw32
+index bfe15069c68..b6f5e8cbb2a 100644
+--- a/gcc/config/i386/t-mingw32
++++ b/gcc/config/i386/t-mingw32
+@@ -2,4 +2,4 @@
+ NATIVE_SYSTEM_HEADER_DIR = /mingw/include
+ 
+ # MinGW-specific parts of LIB_SPEC
+-SHLIB_LC = -lmingw32 -lmingwex -lmoldname -lmsvcrt -luser32 -lkernel32 -ladvapi32 -lshell32
++SHLIB_LC = -lmingw32 -lmingwex -lmoldname -lmsvcrt -ladvapi32 -lshell32 -luser32 -lkernel32
+-- 

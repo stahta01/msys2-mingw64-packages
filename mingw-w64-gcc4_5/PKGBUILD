@@ -35,21 +35,25 @@ source=("ftp://gcc.gnu.org/pub/gcc/releases/${_realname}-${pkgver}/${_realname}-
     104-gcc-4.5-Fix-texi-docs-syntax-errors.patch
     111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
     121-gcc-4.0-handle-use-mingw-ansi-stdio.patch
-    122-gcc-4.5-config.gcc-i-34567-86-mingw-x86_64-mingw-Choose-t-mi.patch
+    122-gcc-4.5-mingw-Backport-SVN-159364.patch
+    123-gcc-4.5-windows-Backport-SVN-163738.patch
     131-gcc-4.0-windows-lrealpath-no-force-lowercase-nor-backslash.patch
     132-gcc-4.3-dont-escape-arguments-that-dont-need-it-in-pex-win32.c.patch
     141-gcc-4.4-ktietz-libgomp.patch
-    161-gcc-4.0-cfns-fix-mismatch-in-gnu_inline-attributes.patch)
+    161-gcc-4.0-cfns-fix-mismatch-in-gnu_inline-attributes.patch
+    201-gcc-4.4.7-add-DWARF2_UNWIND_INFO-guard.patch)
 sha256sums=('eef3f0456db8c3d992cbb51d5d32558190bc14f3bc19383dd93acc27acc6befc'
             'f06ab1dd6d585fcc2540dfadfeac0b9f898dc7395ff1a04756676aec32a835ca'
             '3183d14c89aaafc1d5c4bc2d9c09812bc229e82cb91d9e1e7c3b9b5da25eb42a'
             'ef56680941f2e7393acd31f747a3927db738fa92d409913736908fc283af29d3'
             '748a921674a663532426bfca61856517610154564cfed6949629ba62fdeb8de3'
-            'b83c472712483003b84fbcd99b1d802c07b2008f2fead6bca6be199de89584ae'
+            '71597b098fa10a294a0422cd3654f8c60943e8f8330606ee1f19ad7f66af1f0c'
+            '1731e9fdad5f4f49e54572c5e0c1a347619820d5a47d83201d4563a0b4b61e9a'
             '1ae38b261fc68c332051ee3080dd4914323be16b50152a6ed7e14cca938e10af'
             '918152eb9c4654b7538dbe91e4ab939aab26e1b14f6a995492b9fccefff334fc'
             'fc1318f0ff236ea158f9123fe80ade0a64bd97cf68a0c076349bd501341a03f7'
-            '714e18e8e1a89c149dfabde6eb6dd0a7518590b7a911643de761b6d31c7acd2d')
+            '714e18e8e1a89c149dfabde6eb6dd0a7518590b7a911643de761b6d31c7acd2d'
+            'b300ff4633ff9ba331804146bc113d5527dc003b90101a2c41f73a34d3ec6823')
 
 prepare() {
   cd ${srcdir}/${_realname}-${pkgver}
@@ -104,8 +108,11 @@ prepare() {
   # Kai's libgomp fix.
   patch -Np1 -i ${srcdir}/141-gcc-4.4-ktietz-libgomp.patch
 
+  patch -Np1 -i ${srcdir}/201-gcc-4.4.7-add-DWARF2_UNWIND_INFO-guard.patch
+
   patch -Np1 -i ${srcdir}/121-gcc-4.0-handle-use-mingw-ansi-stdio.patch
-  patch -Np1 -i ${srcdir}/122-gcc-4.5-config.gcc-i-34567-86-mingw-x86_64-mingw-Choose-t-mi.patch
+  patch -Np1 -i ${srcdir}/122-gcc-4.5-mingw-Backport-SVN-159364.patch
+  patch -Np1 -i ${srcdir}/123-gcc-4.5-windows-Backport-SVN-163738.patch
 
   # FIX "The directory that should contain system headers does not exist: /mingw/include"
   sed -i "s|/mingw/include|/mingw32/include|g" gcc/config/i386/t-mingw-w32
@@ -118,7 +125,7 @@ build() {
 
   case "${CARCH}" in
     i686)
-      local _conf="--disable-sjlj-exceptions --with-dwarf2"
+      local _conf="--enable-sjlj-exceptions --with-dwarf2"
       LDFLAGS+=" -Wl,--large-address-aware"
       local _arch=i686
     ;;
