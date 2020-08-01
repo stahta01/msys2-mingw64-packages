@@ -3,9 +3,10 @@
 # Contributor: Alexey Borzenkov <snaury@gmail.com>
 # Contributor: Ray Donnelly <mingw.android@gmail.com>
 
-_enable_ada=yes
-_enable_fortran=yes
-_enable_objc=yes
+_threads="win32"
+_enable_ada=no
+_enable_fortran=no
+_enable_objc=no
 _realname=gcc
 pkgname=(
          "${MINGW_PACKAGE_PREFIX}-${_realname}"
@@ -47,7 +48,6 @@ sha256sums=('35af16afa0b67af9b8eb15cafb76d2bc5f568540552522f5dc2c88dd45d977e8'
             '918152eb9c4654b7538dbe91e4ab939aab26e1b14f6a995492b9fccefff334fc'
             'fc1318f0ff236ea158f9123fe80ade0a64bd97cf68a0c076349bd501341a03f7'
             '714e18e8e1a89c149dfabde6eb6dd0a7518590b7a911643de761b6d31c7acd2d')
-_threads="win32"
 
 prepare() {
   cd ${srcdir}/${_realname}-${pkgver}
@@ -185,7 +185,7 @@ build() {
     #sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
   #fi
 
-  make all
+  make -j1 all
 
   make -j1 DESTDIR=${srcdir} install
   if [ "$_enable_ada" == "yes" ]; then
