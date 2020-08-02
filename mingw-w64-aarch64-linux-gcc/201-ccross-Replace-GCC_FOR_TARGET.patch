@@ -1,0 +1,83 @@
+From ed9e0d8f9bd1694e6357c32584f5492ca698f28a Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Thu, 13 Aug 2020 08:15:37 -0400
+Subject: Replace $(GCC_FOR_TARGET) with
+
+"$(toplevel_builddir)/gcc/xgcc$(exeext) -B$(toplevel_builddir)/gcc/";
+Needed to fix Can. Cross build.
+---
+ gcc/Makefile.in     | 2 +-
+ gcc/c/Make-lang.in  | 6 +++---
+ gcc/cp/Make-lang.in | 6 +++---
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/gcc/Makefile.in b/gcc/Makefile.in
+index b77aa3b651d..99e689ce4e4 100644
+--- a/gcc/Makefile.in
++++ b/gcc/Makefile.in
+@@ -2061,7 +2061,7 @@ cpp$(exeext): $(GCC_OBJS) c-family/cppspec.o libcommon-target.a $(LIBDEPS) \
+ 
+ # Dump a specs file to make -B./ read these specs over installed ones.
+ $(SPECS): xgcc$(exeext)
+-	$(GCC_FOR_TARGET) -dumpspecs > tmp-specs
++	$(toplevel_builddir)/gcc/xgcc$(exeext) -B$(toplevel_builddir)/gcc/ -dumpspecs > tmp-specs
+ 	mv tmp-specs $(SPECS)
+ 
+ # We do want to create an executable named `xgcc', so we can use it to
+diff --git a/gcc/c/Make-lang.in b/gcc/c/Make-lang.in
+index 7efc7c2c332..ebc442cdf53 100644
+--- a/gcc/c/Make-lang.in
++++ b/gcc/c/Make-lang.in
+@@ -121,13 +121,13 @@ C_SELFTEST_DEPS = cc1$(exeext) $(SELFTEST_DEPS)
+ 
+ # Run the C selftests:
+ s-selftest-c: $(C_SELFTEST_DEPS)
+-	$(GCC_FOR_TARGET) $(C_SELFTEST_FLAGS)
++	$(toplevel_builddir)/gcc/xgcc$(exeext) -B$(toplevel_builddir)/gcc/ $(C_SELFTEST_FLAGS)
+ 	$(STAMP) $@
+ 
+ # Convenience methods for running C selftests under gdb:
+ .PHONY: selftest-c-gdb
+ selftest-c-gdb: $(C_SELFTEST_DEPS)
+-	$(GCC_FOR_TARGET) $(C_SELFTEST_FLAGS) \
++	$(toplevel_builddir)/gcc/xgcc$(exeext) -B$(toplevel_builddir)/gcc/ $(C_SELFTEST_FLAGS) \
+ 	  -wrapper gdb,--args
+ 
+ .PHONY: selftest-gdb
+@@ -136,7 +136,7 @@ selftest-gdb: selftest-c-gdb
+ # Convenience methods for running C selftests under valgrind:
+ .PHONY: selftest-c-valgrind
+ selftest-c-valgrind: $(C_SELFTEST_DEPS)
+-	$(GCC_FOR_TARGET) $(C_SELFTEST_FLAGS) \
++	$(toplevel_builddir)/gcc/xgcc$(exeext) -B$(toplevel_builddir)/gcc/ $(C_SELFTEST_FLAGS) \
+ 	  -wrapper valgrind,--leak-check=full
+ 
+ .PHONY: selftest-valgrind
+diff --git a/gcc/cp/Make-lang.in b/gcc/cp/Make-lang.in
+index 6ee4e41266f..7d665397f4d 100644
+--- a/gcc/cp/Make-lang.in
++++ b/gcc/cp/Make-lang.in
+@@ -175,19 +175,19 @@ CPP_SELFTEST_FLAGS = -xc++ $(SELFTEST_FLAGS)
+ 
+ # Run the C++ selftests
+ s-selftest-c++: $(CPP_SELFTEST_DEPS)
+-	$(GCC_FOR_TARGET) $(CPP_SELFTEST_FLAGS)
++	$(toplevel_builddir)/gcc/xgcc$(exeext) -B$(toplevel_builddir)/gcc/ $(CPP_SELFTEST_FLAGS)
+ 	$(STAMP) $@
+ 
+ # Convenience method for running C++ selftests under gdb:
+ .PHONY: selftest-c++-gdb
+ selftest-c++-gdb: $(CPP_SELFTEST_DEPS)
+-	$(GCC_FOR_TARGET) $(CPP_SELFTEST_FLAGS) \
++	$(toplevel_builddir)/gcc/xgcc$(exeext) -B$(toplevel_builddir)/gcc/ $(CPP_SELFTEST_FLAGS) \
+ 	  -wrapper gdb,--args
+ 
+ # Convenience method for running C++ selftests under valgrind:
+ .PHONY: selftest-c++-valgrind
+ selftest-c++-valgrind: $(CPP_SELFTEST_DEPS)
+-	$(GCC_FOR_TARGET) $(CPP_SELFTEST_FLAGS) \
++	$(toplevel_builddir)/gcc/xgcc$(exeext) -B$(toplevel_builddir)/gcc/ $(CPP_SELFTEST_FLAGS) \
+ 	  -wrapper valgrind,--leak-check=full
+ 
+ # 'make check' in gcc/ looks for check-c++, as do all toplevel C++-related
+-- 

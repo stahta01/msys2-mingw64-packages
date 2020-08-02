@@ -1,0 +1,158 @@
+# Contributer: Tim Stahlhut <stahta01@gmail.com>
+# Fork of ArchLinux package: https://www.archlinux.org/packages/community/x86_64/aarch64-linux-gnu-gcc/
+
+# Broken: Have stopped with trying to get C Precompiler (CPP) working with aarch64-linux GCC.
+
+_realname=gcc
+_base_target=aarch64-linux
+_pkg_target=${_base_target}
+_long_target=${_base_target}-gnu
+_pgm_prefix=${_long_target}
+_target_arch=arm64
+
+pkgbase=mingw-w64-${_pkg_target}-${_realname}
+pkgname=(${MINGW_PACKAGE_PREFIX}-${_pkg_target}-${_realname} )
+pkgver=10.2.0
+_isl_ver=0.22
+pkgrel=1
+pkgdesc='The GNU Compiler Collection - cross compiler for ARM64 target (mingw-w64)'
+groups=("${MINGW_PACKAGE_PREFIX}-${_pkg_target}-toolchain" "${MINGW_PACKAGE_PREFIX}-${_long_target}-toolchain")
+arch=('any')
+url='https://gcc.gnu.org/'
+license=(GPL LGPL FDL)
+
+depends=(
+  ${MINGW_PACKAGE_PREFIX}-${_pkg_target}-binutils
+  ${MINGW_PACKAGE_PREFIX}-${_pkg_target}-api-headers 
+  ${MINGW_PACKAGE_PREFIX}-${_pkg_target}-glibc
+  ${MINGW_PACKAGE_PREFIX}-zlib
+)
+makedepends=(
+  ${MINGW_PACKAGE_PREFIX}-gmp ${MINGW_PACKAGE_PREFIX}-mpc 
+  ${MINGW_PACKAGE_PREFIX}-mpfr 'patch' 'make'
+)
+options=(!emptydirs !strip staticlibs !buildflags '!makeflags')
+source=(https://ftp.gnu.org/gnu/gcc/gcc-$pkgver/gcc-$pkgver.tar.xz
+        http://isl.gforge.inria.fr/isl-$_isl_ver.tar.bz2
+        201-ccross-Replace-GCC_FOR_TARGET.patch
+        202-Set-CPP-to-CC-E.patch
+)
+sha256sums=('b8dd4368bb9c7f0b98188317ee0254dd8cc99d1e3a18d0ff146c855fe16c1d8c'
+            'b21d354acd613a91cb88328753ec3aaeb174d6af042d89c5fcf3bbcced370751'
+            'd46e4e7fef92daab4d310f655a08475a28fa88b1da76a4342b8136b99fb0646d'
+            'b188125e7a02d693e1cea122b87ff19c9c0ecc7dfe26f5be523edfd4c613e522')
+
+noextract=(gcc-$pkgver.tar.xz isl-$_isl_ver.tar.bz2)
+
+_pkgsourcedir=gcc-$pkgver
+
+# Helper macros to help make tasks easier #
+extract() {
+    local tarfile="$1"
+    local extracted="$(echo "$tarfile" | sed 's/\.tar.*$//')"
+    if [ ! -d  "$extracted" ]; then
+        echo "Extracting ${tarfile}"
+        tar -xf $tarfile --checkpoint=500
+    fi
+}
+
+extract_to_pkgsourcedir() {
+    local tarfile="$1"
+    local subfolder="$(echo "$tarfile" | sed 's/-.*$//')"
+    if [ ! -d  "${srcdir}/$_pkgsourcedir/$subfolder" ]; then
+        echo "Extracting ${tarfile} to $_pkgsourcedir/$subfolder"
+        mkdir -p "${srcdir}/$_pkgsourcedir/$subfolder"
+        tar -x --strip-components=1 -f "$tarfile" -C "${srcdir}/$_pkgsourcedir/$subfolder"
+    fi
+}
+
+prepare() {
+  extract gcc-$pkgver.tar.xz
+
+  # extract libraries for in-tree builds
+  extract_to_pkgsourcedir "isl-$_isl_ver.tar.bz2"
+
+  cd $_pkgsourcedir
+
+  if [ -f  "${srcdir}/$_pkgsourcedir/gcc/cp/Make-lang.in.orig" ]; then
+    cp gcc/cp/Make-lang.in.orig gcc/cp/Make-lang.in
+  fi
+  if [ -f  "${srcdir}/$_pkgsourcedir/gcc/c/Make-lang.in.orig" ]; then
+    cp gcc/c/Make-lang.in.orig gcc/c/Make-lang.in
+  fi
+  if [ -f  "${srcdir}/$_pkgsourcedir/gcc/Makefile.in.orig" ]; then
+    cp gcc/Makefile.in.orig gcc/Makefile.in
+  fi
+  patch -Nbp1 -i ${srcdir}/201-ccross-Replace-GCC_FOR_TARGET.patch
+
+  if [ -f  "${srcdir}/$_pkgsourcedir/libgcc/configure.orig" ]; then
+    cp libgcc/configure.orig libgcc/configure
+  fi
+  patch -Nbp1 -i ${srcdir}/202-Set-CPP-to-CC-E.patch
+
+  echo $pkgver > gcc/BASE-VER
+
+  # Do not run fixincludes
+  #sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
+
+  # hack! - some configure tests for header files using "$CPP $CPPFLAGS"
+  sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" "$srcdir"/$_pkgsourcedir/{libiberty,gcc}/configure
+}
+
+build() {
+  [[ -d "${srcdir}"/build-gcc-${CARCH} ]] && rm -rf "${srcdir}"/build-gcc-${CARCH}
+  mkdir -p "${srcdir}"/build-gcc-${CARCH} && cd "${srcdir}"/build-gcc-${CARCH}
+
+  # using -pipe causes spurious test-suite failures
+  # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48565
+  CFLAGS=${CFLAGS/-pipe/}
+  CXXFLAGS=${CXXFLAGS/-pipe/}
+
+  CC=${MINGW_CHOST}-gcc.exe \
+  CPP="$CC -E" \
+  CC_FOR_TARGET="${srcdir}/build-gcc-${CARCH}/gcc/xgcc.exe -B${srcdir}/build-gcc-${CARCH}/gcc/" \
+  CXX_FOR_BUILD=${MSYSTEM_CHOST}-g++.exe \
+  CC_FOR_BUILD=${MSYSTEM_CHOST}-gcc.exe \
+  AR=${MINGW_PREFIX}/bin/ar.exe \
+  "$srcdir"/$_pkgsourcedir/configure \
+      --with-build-time-tools=${MINGW_PREFIX}/$_long_target/bin \
+      --prefix=${MINGW_PREFIX} \
+      --program-prefix=$_pgm_prefix- \
+      --with-local-prefix=${MINGW_PREFIX}/$_long_target \
+      --with-sysroot=${MINGW_PREFIX}/$_long_target \
+      --with-build-sysroot=${MINGW_PREFIX}/$_long_target \
+      --with-native-system-header-dir=/include \
+      --libdir=${MINGW_PREFIX}/lib --libexecdir=${MINGW_PREFIX}/lib \
+      --target=$_long_target --host=${MINGW_CHOST} --build=${MSYSTEM_CHOST} \
+      --disable-nls \
+      --enable-languages=c,c++ \
+      --with-{gmp,mpfr,mpc}=${MINGW_PREFIX} \
+      --with-system-zlib --with-isl \
+      --disable-libunwind-exceptions  \
+      --disable-libstdcxx-pch --disable-libssp \
+      --disable-checking \
+      --disable-multilib --disable-werror
+
+  make -j1
+}
+
+package() {
+  cd "${srcdir}"/build-gcc-${CARCH}
+
+  make -j1 DESTDIR="$pkgdir" install-gcc install-target-{libgcc,libstdc++-v3,libgomp,libgfortran,libquadmath}
+
+  # strip target binaries
+  find "$pkgdir"${MINGW_PREFIX}/lib/gcc/$_long_target/ "$pkgdir"${MINGW_PREFIX}/$_long_target/lib \
+       -type f -and \( -name \*.a -or -name \*.o \) \
+       -exec $_long_target-objcopy -R .comment -R .note -R .debug_info -R .debug_aranges \
+           -R .debug_pubnames -R .debug_pubtypes -R .debug_abbrev -R .debug_line \
+           -R .debug_str -R .debug_ranges -R .debug_loc '{}' \;
+
+  # strip host binaries
+  find "$pkgdir"${MINGW_PREFIX}/bin/ "$pkgdir"${MINGW_PREFIX}/lib/gcc/$_long_target/ -type f -and \( -executable \) -exec strip '{}' \;
+
+  # Remove files that conflict with host gcc package
+  rm -r "$pkgdir"${MINGW_PREFIX}/share/man/man7
+  rm -r "$pkgdir"${MINGW_PREFIX}/share/info
+  rm -r "$pkgdir"${MINGW_PREFIX}/share/gcc-$pkgver
+}

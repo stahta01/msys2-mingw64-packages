@@ -1,0 +1,25 @@
+From 17a38bd3dfd00eaf74b217c2285e964795513c08 Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Thu, 13 Aug 2020 20:33:09 -0400
+Subject: Set CPP to "$CC -E"
+
+---
+ libgcc/configure | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libgcc/configure b/libgcc/configure
+index 284e4db0cdd..7fa9f7a1abe 100755
+--- a/libgcc/configure
++++ b/libgcc/configure
+@@ -4057,7 +4057,7 @@ if test -z "$CPP"; then
+   $as_echo_n "(cached) " >&6
+ else
+       # Double quotes because CPP needs to be expanded
+-    for CPP in "$CC -E" "$CC -E -traditional-cpp" "/lib/cpp"
++    for CPP in "$CC -E"
+     do
+       ac_preproc_ok=false
+ for ac_c_preproc_warn_flag in '' yes
+-- 
+2.28.0.windows.1
+
