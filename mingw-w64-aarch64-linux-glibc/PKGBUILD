@@ -1,0 +1,107 @@
+# Contributer: Tim Stahlhut <stahta01@gmail.com>
+# Fork of ArchLinux package: https://www.archlinux.org/packages/community/any/aarch64-linux-gnu-glibc/
+
+_realname=glibc
+_base_target=aarch64-linux
+_target=${_base_target}-gnu
+
+_build_phase=A
+# build phase A-0 Build and install packages mingw-w64-aarch64-linux-binutils and
+#                   mingw-w64-aarch64-linux-api-headers.
+# build phase A-1 Manually use script build_cross_aarch64_linux_gcc.sh to build
+#                   GCC for aarch64-linux.
+# build phase A-2 Use this package to build and install glibc package.
+# build phase A-3 Build and install package mingw-w64-aarch64-linux-gcc.
+# build phase A-4 Manually delete the files/folders under /opt/local/cross 
+#                   installed by the script in step 1.
+# build phase B-1 Change "_build_phase" to "B"
+# build phase B-2 Use the installed packages to build the phase B glibc package.
+pkgbase=mingw-w64-${_base_target}-${_realname}
+pkgname=(${MINGW_PACKAGE_PREFIX}-${_base_target}-${_realname})
+groups=("${MINGW_PACKAGE_PREFIX}-${_base_target}-toolchain" "${MINGW_PACKAGE_PREFIX}-${_target}-toolchain")
+_glibc_ver=2.32
+pkgver=$_glibc_ver
+pkgrel=1
+pkgdesc="GNU C Library ARM64 target (mingw-w64)"
+arch=('any')
+url='https://gcc.gnu.org/'
+license=(GPL LGPL FDL)
+makedepends=(
+  ${MINGW_PACKAGE_PREFIX}-gmp ${MINGW_PACKAGE_PREFIX}-mpc ${MINGW_PACKAGE_PREFIX}-mpfr rsync python gcc
+  ${MINGW_PACKAGE_PREFIX}-${_base_target}-binutils
+  ${MINGW_PACKAGE_PREFIX}-${_base_target}-api-headers
+  $([[ "$_build_phase" == "B" ]]  && echo "${MINGW_PACKAGE_PREFIX}-${_base_target}-gcc")
+)
+options=(!emptydirs !strip staticlibs !buildflags)
+source=(https://ftp.gnu.org/gnu/libc/glibc-$_glibc_ver.tar.xz )
+sha256sums=('SKIP')
+noextract=(glibc-$_glibc_ver.tar.xz )
+
+extract() {
+    local tarfile="$1"
+    local extracted="$(echo "$tarfile" | sed 's/\.tar.*$//')"
+    if [ ! -d  "$extracted" ]; then
+        echo "Extracting ${tarfile}"
+        tar -xf $tarfile --checkpoint=250
+    fi
+}
+
+prepare() {
+  extract glibc-$_glibc_ver.tar.xz || true
+
+  cd glibc-$_glibc_ver
+  # Replace "oS" with "oZ" to avoid filename clashes
+  sed -i 's/.oS)/.oZ)/g; s/.oS$/.oZ/g; s/.oS =/.oZ =/g'       Makeconfig
+  sed -i 's/.oS,/.oZ,/g; s/.oS +=/.oZ +=/g; s/.oS)/.oZ)/g'    Makerules 
+  sed -i 's/.oS)/.oZ)/g; s/.oS,/.oZ,/g'                       extra-lib.mk        
+  sed -i 's/.oS)/.oZ)/g'                                      nptl/Makefile
+  sed -i 's/.oS +=/.oZ +=/g'                                  csu/Makefile
+  sed -i 's/.oS +=/.oZ +=/g'                                  sysdeps/i386/i686/Makefile
+  sed -i 's/.oS,/.oZ,/g'                                      sysdeps/ieee754/ldbl-opt/Makefile
+  sed -i 's/.oS +=/.oZ +=/g'                                  sysdeps/sparc/sparc32/sparcv9/Makefile
+  sed -i 's/.oS +=/.oZ +=/g'                                  sysdeps/sparc/sparc64/Makefile
+  sed -i 's/.oS +=/.oZ +=/g'                                  sysdeps/unix/sysv/linux/mips/Makefile
+  sed -i 's/.oS +=/.oZ +=/g'                                  sysdeps/x86/Makefile
+  sed -i 's/,oS}/,oZ}/g'                                      scripts/check-local-headers.sh
+  # use copy because the rellns-sh has issues under msys2
+  sed -i 's|$(LN_S) `$(..)scripts/rellns-sh -p $< $@` $@|cp -p $< $@|' Makerules
+}
+
+build() {
+
+  if [[ "$_build_phase" == "A" ]] ; then
+    export PATH=/opt/local/cross/bin:$PATH
+  fi
+
+  # build begin
+  [[ -d "${srcdir}"/build-glibc-${CARCH} ]] && rm -rf "${srcdir}"/build-glibc-${CARCH}
+  mkdir -p "${srcdir}"/build-glibc-${CARCH} && cd "${srcdir}"/build-glibc-${CARCH}
+
+  unset LD_LIBRARY_PATH
+
+  BUILD_CC=${MINGW_CHOST}-gcc \
+  CC=${_target}-gcc \
+  CXX=${_target}-g++ \
+  AR=${_target}-ar \
+  RANLIB=${_target}-ranlib \
+  ../glibc-$_glibc_ver/configure \
+      --prefix=${MINGW_PREFIX}/$_target \
+      --target=$_base_target \
+      --host=$_base_target \
+      --build=$MINGW_CHOST \
+      --with-headers=${MINGW_PREFIX}/$_target/include \
+      --disable-profile \
+      --disable-werror
+
+  echo "build-programs=no" >> configparms
+  make -j1
+}
+
+package() {
+  cd "${srcdir}"/build-glibc-${CARCH}
+
+  make install_root="$pkgdir" install
+
+  #rm -r "$pkgdir"${MINGW_PREFIX}/$_target/{etc,var}
+  #rm -r "$pkgdir"${MINGW_PREFIX}/$_target/share
+}
