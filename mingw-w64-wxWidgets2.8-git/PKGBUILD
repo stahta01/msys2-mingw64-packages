@@ -28,7 +28,7 @@ conflicts=(
 pkgver=2.8.12.0.r41651.0802369b36
 pkgrel=1
 pkgdesc="A C++ library that lets developers create applications for Windows, Linux and UNIX (mingw-w64)"
-arch=('i686')
+arch=('any')
 license=("custom:wxWindows")
 url="https://www.wxwidgets.org/"
 depends=(
@@ -112,6 +112,9 @@ prepare() {
 }
 
 build() {
+
+  CXXFLAGS+=" -std=gnu++98 -fpermissive"
+
   ##CXXFLAGS+=" -std=gnu++11"
   [[ -d "${srcdir}"/build-${CARCH} ]] && rm -rf "${srcdir}"/build-${CARCH}
   mkdir -p "${srcdir}"/build-${CARCH} && cd "${srcdir}"/build-${CARCH}
