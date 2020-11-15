@@ -130,7 +130,7 @@ build() {
     --enable-iff \
     --disable-unicode \
     --enable-accessibility \
-    --disable-compat26 \
+    --enable-compat26 \
     --disable-monolithic \
     --disable-mslu \
     --disable-precomp-headers \
@@ -156,7 +156,7 @@ build() {
     --enable-iff \
     --disable-unicode \
     --enable-accessibility \
-    --disable-compat26 \
+    --enable-compat26 \
     --disable-monolithic \
     --disable-mslu \
     --disable-precomp-headers \
