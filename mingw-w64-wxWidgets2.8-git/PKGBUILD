@@ -13,6 +13,7 @@
 #   MINGW_INSTALLS=mingw32 makepkg-mingw -sLf
 
 _basename=wxWidgets
+_sourcedir=${_basename}-git
 _realname=wxmsw
 _wx_basever=2.8
 pkgbase=mingw-w64-${_realname}${_wx_basever}-git
@@ -50,7 +51,7 @@ makedepends=(
 checkdepends=("${MINGW_PACKAGE_PREFIX}-cppunit")
 options=('strip' 'staticlibs' 'buildflags')
 source=(
-  ${_basename}::"git+https://github.com/wxWidgets/wxWidgets.git#branch=WX_2_8_BRANCH"
+  ${_sourcedir}::"git+https://github.com/wxWidgets/wxWidgets.git#branch=WX_2_8_BRANCH"
   "001-wxWidgets-2.8.12-fix-bad-WIN32-IE-version.patch"
   "002-wxWidgets-2.8.12-remove-libwctl3d32.patch"
   "003-wxWidgets-2.8.12-add-option-Wno-unused-local-typedefs.patch"
