@@ -69,15 +69,22 @@ sha256sums=('SKIP'
             'd2d405de481056ef46059dcc3d0d80571a064e4e6ae506693115322e62f3d011'
             '7030c3497d18a5a50f0c467deeb56196fe8e6b6fedac6a83045b7eebc40eb446')
 
+# Declare global variables; begin with underscore to avoid name conflicts
+_git_base_commit=
+
 pkgver() {
   cd ${srcdir}/${_sourcedir}
+  local _major=$(head -n 34 include/wx/version.h | grep 'wxMAJOR_VERSION' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
+  local _minor1=$(head -n 34 include/wx/version.h | grep 'wxMINOR_VERSION' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
   local _minor2=$(head -n 34 include/wx/version.h | grep 'wxRELEASE_NUMBER' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
   local _minor3=$(head -n 34 include/wx/version.h | grep 'wxSUBRELEASE_NUMBER' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
-  printf "%s.%s.%s.r%s.%s" "${_wx_basever}" "$_minor2" "$_minor3" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+  printf "%s.%s.%s.%s.v+%s.c%s.g%s" "$_major" "$_minor1" "$_minor2" "$_minor3" $(git rev-list --count $(git rev-list -1 ${_git_base_commit} include/wx/version.h)..${_git_base_commit}) $(git rev-list --count ${_git_base_commit}..HEAD) $(git rev-parse --short ${_git_base_commit})
 }
 
 prepare() {
   cd "${srcdir}/${_sourcedir}"
+
+  _git_base_commit=$(git rev-parse HEAD)
 
   # Patches needed to build 32 bit
   if ! patch -R -p1 --dry-run -i "${srcdir}"/001-wxWidgets-2.8.12-fix-bad-WIN32-IE-version.patch > /nul; then
