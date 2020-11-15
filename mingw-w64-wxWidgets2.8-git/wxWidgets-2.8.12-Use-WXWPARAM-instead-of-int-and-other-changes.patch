@@ -1,0 +1,88 @@
+From 7b84662dcd5ed3b5686bdfa6bea467f89308722e Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Sun, 15 Nov 2020 01:34:39 -0500
+Subject: Use WXWPARAM instead of int and other changes.
+
+---
+ include/wx/msw/menuitem.h | 2 +-
+ src/msw/menuitem.cpp      | 9 +++++++--
+ src/msw/toplevel.cpp      | 8 ++++----
+ src/msw/utils.cpp         | 2 +-
+ 4 files changed, 13 insertions(+), 8 deletions(-)
+
+diff --git a/include/wx/msw/menuitem.h b/include/wx/msw/menuitem.h
+index b6238e9b78..8c063744f0 100644
+--- a/include/wx/msw/menuitem.h
++++ b/include/wx/msw/menuitem.h
+@@ -54,7 +54,7 @@ public:
+     // the id for a popup menu is really its menu handle (as required by
+     // ::AppendMenu() API), so this function will return either the id or the
+     // menu handle depending on what we're
+-    int GetRealId() const;
++    WXWPARAM GetRealId() const;
+ 
+     // mark item as belonging to the given radio group
+     void SetAsRadioGroupStart();
+diff --git a/src/msw/menuitem.cpp b/src/msw/menuitem.cpp
+index 79c03953b8..82a194fe76 100644
+--- a/src/msw/menuitem.cpp
++++ b/src/msw/menuitem.cpp
+@@ -186,9 +186,14 @@ wxMenuItem::~wxMenuItem()
+ // ----
+ 
+ // return the id for calling Win32 API functions
+-int wxMenuItem::GetRealId() const
++WXWPARAM wxMenuItem::GetRealId() const
+ {
+-    return m_subMenu ? (int)m_subMenu->GetHMenu() : GetId();
++    // we must use ids in unsigned short range with Windows functions, if we
++    // pass ids > USHRT_MAX to them they get very confused (e.g. start
++    // generating WM_COMMAND messages with negative high word of wParam), so
++    // use the cast to ensure the id is in range
++    return m_subMenu ? (intptr_t)m_subMenu->GetHMenu()
++                     : static_cast<unsigned short>(GetId());
+ }
+ 
+ // get item state
+diff --git a/src/msw/toplevel.cpp b/src/msw/toplevel.cpp
+index 44f9752dea..c95e9b3a37 100644
+--- a/src/msw/toplevel.cpp
++++ b/src/msw/toplevel.cpp
+@@ -1122,7 +1122,7 @@ void wxTopLevelWindowMSW::OnActivate(wxActivateEvent& event)
+     {
+         // restore focus to the child which was last focused unless we already
+         // have it
+-        wxLogTrace(_T("focus"), _T("wxTLW %08x activated."), (int) m_hWnd);
++        wxLogTrace(_T("focus"), _T("wxTLW %p activated."), (intptr_t) m_hWnd);
+ 
+         wxWindow *winFocus = FindFocus();
+         if ( !winFocus || wxGetTopLevelParent(winFocus) != this )
+@@ -1157,9 +1157,9 @@ void wxTopLevelWindowMSW::OnActivate(wxActivateEvent& event)
+         }
+ 
+         wxLogTrace(_T("focus"),
+-                   _T("wxTLW %08x deactivated, last focused: %08x."),
+-                   (int) m_hWnd,
+-                   (int) (m_winLastFocused ? GetHwndOf(m_winLastFocused)
++                   _T("wxTLW %p deactivated, last focused: %p."),
++                   (intptr_t) m_hWnd,
++                   (intptr_t) (m_winLastFocused ? GetHwndOf(m_winLastFocused)
+                                            : NULL));
+ 
+         event.Skip();
+diff --git a/src/msw/utils.cpp b/src/msw/utils.cpp
+index 73b7f33b68..64fb85eadc 100644
+--- a/src/msw/utils.cpp
++++ b/src/msw/utils.cpp
+@@ -713,7 +713,7 @@ int wxKill(long pid, wxSignal sig, wxKillError *krc, int flags)
+         return -1;
+     }
+ 
+-    wxON_BLOCK_EXIT1(::CloseHandle, hProcess);
++    wxON_BLOCK_EXIT1((WINBOOL (*)(void *))::CloseHandle, hProcess);
+ 
+     bool ok = true;
+     switch ( sig )
+-- 
+2.29.2.windows.2
+

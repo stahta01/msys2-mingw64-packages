@@ -1,0 +1,39 @@
+From 3a6f994ce7bdcaacf813c9939b623f29a70392de Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Sun, 15 Nov 2020 01:25:23 -0500
+Subject: Add include of "direct.h"
+
+---
+ src/common/debugrpt.cpp | 2 ++
+ src/common/filefn.cpp   | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/src/common/debugrpt.cpp b/src/common/debugrpt.cpp
+index 9eeab34255..764c59418e 100644
+--- a/src/common/debugrpt.cpp
++++ b/src/common/debugrpt.cpp
+@@ -54,6 +54,8 @@
+     #include "wx/zipstrm.h"
+ #endif // wxUSE_ZIPSTREAM
+ 
++#include <direct.h>
++
+ WX_CHECK_BUILD_OPTIONS("wxQA")
+ 
+ // ----------------------------------------------------------------------------
+diff --git a/src/common/filefn.cpp b/src/common/filefn.cpp
+index 090231f59d..761156eb5e 100644
+--- a/src/common/filefn.cpp
++++ b/src/common/filefn.cpp
+@@ -70,6 +70,8 @@
+         #endif
+     #endif // __GNUWIN32__
+ 
++    #include <direct.h>
++
+     // io.h is needed for _get_osfhandle()
+     // Already included by filefn.h for many Windows compilers
+     #if defined __MWERKS__ || defined __CYGWIN__
+-- 
+2.29.2.windows.2
+
