@@ -70,14 +70,14 @@ sha256sums=('SKIP'
             '7030c3497d18a5a50f0c467deeb56196fe8e6b6fedac6a83045b7eebc40eb446')
 
 pkgver() {
-  cd ${srcdir}/${_basename}
+  cd ${srcdir}/${_sourcedir}
   local _minor2=$(head -n 34 include/wx/version.h | grep 'wxRELEASE_NUMBER' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
   local _minor3=$(head -n 34 include/wx/version.h | grep 'wxSUBRELEASE_NUMBER' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
   printf "%s.%s.%s.r%s.%s" "${_wx_basever}" "$_minor2" "$_minor3" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 prepare() {
-  cd "${srcdir}/${_basename}"
+  cd "${srcdir}/${_sourcedir}"
 
   # Patches needed to build 32 bit
   if ! patch -R -p1 --dry-run -i "${srcdir}"/001-wxWidgets-2.8.12-fix-bad-WIN32-IE-version.patch > /nul; then
@@ -121,7 +121,7 @@ build() {
   mkdir -p "${srcdir}"/build-${CARCH} && cd "${srcdir}"/build-${CARCH}
 
   CXXFLAGS+=" -fpermissive" \
-  ../${_basename}/configure \
+  ../${_sourcedir}/configure \
     --prefix=${MINGW_PREFIX} \
     --host=${MINGW_CHOST} \
     --target=${MINGW_CHOST} \
@@ -146,7 +146,7 @@ build() {
   mkdir -p "${srcdir}"/build-${CARCH}-static && cd "${srcdir}"/build-${CARCH}-static
 
   CXXFLAGS+=" -fpermissive" \
-  ../${_basename}/configure \
+  ../${_sourcedir}/configure \
     --prefix=${MINGW_PREFIX} \
     --host=${MINGW_CHOST} \
     --target=${MINGW_CHOST} \
@@ -191,12 +191,12 @@ package() {
   rm ${pkgdir}${MINGW_PREFIX}/bin/wxrc.exe
 
   # License files
-  cd "${srcdir}"/${_basename}/docs
-  install -Dm644 preamble.txt "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/preamble.txt"
-  install -Dm644 licence.txt  "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/licence.txt"
-  install -Dm644 licendoc.txt "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/licendoc.txt"
-  install -Dm644 lgpl.txt     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/lgpl.txt"
-  install -Dm644 gpl.txt      "${pkgdir}${MINGW_PREFIX}/share/licenses/${_basename}${_wx_basever}/gpl.txt"
+  cd "${srcdir}"/${_sourcedir}/docs
+  install -Dm644 preamble.txt "${pkgdir}${MINGW_PREFIX}/share/licenses/${_sourcedir}${_wx_basever}/preamble.txt"
+  install -Dm644 licence.txt  "${pkgdir}${MINGW_PREFIX}/share/licenses/${_sourcedir}${_wx_basever}/licence.txt"
+  install -Dm644 licendoc.txt "${pkgdir}${MINGW_PREFIX}/share/licenses/${_sourcedir}${_wx_basever}/licendoc.txt"
+  install -Dm644 lgpl.txt     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_sourcedir}${_wx_basever}/lgpl.txt"
+  install -Dm644 gpl.txt      "${pkgdir}${MINGW_PREFIX}/share/licenses/${_sourcedir}${_wx_basever}/gpl.txt"
 }
 
 #package_mingw-w64-i686-wxmsw2.8-git() { _package_wxmsw; }
