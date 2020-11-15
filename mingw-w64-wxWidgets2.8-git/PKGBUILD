@@ -8,7 +8,9 @@
 ####
 
 # Packages that are assumed to be installed when building this package.
-#   pacman -S --needed --asdeps mingw-w64-i686-toolchain
+#   pacman -S --needed --asdeps mingw-w64-i686-gcc
+# Normal build command
+#   MINGW_INSTALLS=mingw32 makepkg-mingw -sLf
 
 _basename=wxWidgets
 _realname=wxmsw
@@ -111,29 +113,29 @@ prepare() {
 
 build() {
   ##CXXFLAGS+=" -std=gnu++11"
-  #[[ -d "${srcdir}"/build-${CARCH} ]] && rm -rf "${srcdir}"/build-${CARCH}
-  #mkdir -p "${srcdir}"/build-${CARCH} && cd "${srcdir}"/build-${CARCH}
+  [[ -d "${srcdir}"/build-${CARCH} ]] && rm -rf "${srcdir}"/build-${CARCH}
+  mkdir -p "${srcdir}"/build-${CARCH} && cd "${srcdir}"/build-${CARCH}
 
-  #CXXFLAGS+=" -fpermissive" \
-  #../${_basename}/configure \
-    #--prefix=${MINGW_PREFIX} \
-    #--host=${MINGW_CHOST} \
-    #--target=${MINGW_CHOST} \
-    #--build=${MINGW_CHOST} \
-    #--enable-shared \
-    #--enable-iniconf \
-    #--enable-iff \
-    #--disable-unicode \
-    #--enable-accessibility \
-    #--disable-compat26 \
-    #--disable-monolithic \
-    #--disable-mslu \
-    #--disable-precomp-headers \
-    #--with-msw \
-    #--with-opengl \
-    #--with-regex=builtin
+  CXXFLAGS+=" -fpermissive" \
+  ../${_basename}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST} \
+    --build=${MINGW_CHOST} \
+    --enable-shared \
+    --enable-iniconf \
+    --enable-iff \
+    --disable-unicode \
+    --enable-accessibility \
+    --disable-compat26 \
+    --disable-monolithic \
+    --disable-mslu \
+    --disable-precomp-headers \
+    --with-msw \
+    --with-opengl \
+    --with-regex=builtin
 
-  #make #VERBOSE=1
+  make #VERBOSE=1
 
   #CXXFLAGS+=" -std=gnu++11"
   [[ -d "${srcdir}"/build-${CARCH}-static ]] && rm -rf "${srcdir}"/build-${CARCH}-static
@@ -160,7 +162,7 @@ build() {
     --with-regex=builtin
 
   make #VERBOSE=1
-  make -C contrib/src/stc #VERBOSE=1
+#  make -C contrib/src/stc #VERBOSE=1
 }
 
 package() {
@@ -169,11 +171,11 @@ package() {
   make -C contrib/src/stc DESTDIR="${pkgdir}" install
 
 
-  #cd "${srcdir}"/build-${CARCH}
-  #make DESTDIR="${pkgdir}" install
+  cd "${srcdir}"/build-${CARCH}
+  make DESTDIR="${pkgdir}" install
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
-#  mv ${pkgdir}${MINGW_PREFIX}/lib/*.dll ${pkgdir}${MINGW_PREFIX}/bin
+  mv ${pkgdir}${MINGW_PREFIX}/lib/*.dll ${pkgdir}${MINGW_PREFIX}/bin
 
   # Rename files
   mv ${pkgdir}${MINGW_PREFIX}/bin/wx-config{,-${_wx_basever}}
