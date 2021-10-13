@@ -1,4 +1,5 @@
-# Maintainer:  Alexey Pavlov <alexpux@gmail.com>
+# Maintainer:  Tim Stahlhut <stahta01@gmail.com>
+# Contributor: Alexey Pavlov <alexpux@gmail.com>
 # Contributor: Alexey Borzenkov <snaury@gmail.com>
 # Contributor: Ray Donnelly <mingw.android@gmail.com>
 # Contributor: Renato Silva <br.renatosilva@gmail.com>
@@ -6,7 +7,7 @@
 # Contributor: Kirill Müller <krlmlr@mailbox.org>
 
 _enable_ada=yes
-_enable_fortran=no
+_enable_fortran=yes
 _enable_objc=yes
 _enable_jit=yes
 
