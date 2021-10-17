@@ -76,7 +76,7 @@ options=('staticlibs' '!emptydirs') # '!strip' 'debug')
 MPFR_VERSION=4.0.2
 GMP_VERSION=6.1.2
 MPC_VERSION=1.1.0
-ISL_VERSION=0.16.1
+ISL_VERSION=0.15
 source=("https://ftp.gnu.org/gnu/gcc/${_realname}-${pkgver%%+*}/${_realname}-${pkgver}.tar.bz2"
         000-gcc-5-mingw-Relocate-libintl.patch
         001-gcc-4.8-libstdc++export.patch
@@ -157,7 +157,8 @@ if [[ "$_enable_system_mpc_mpfr_gmp_libs" == "no" ]]; then
 fi
 if [[ "$_enable_system_isl_lib" == "no" ]] && [[ "$_enable_graphite" == "yes" ]]; then
 #  sha256sums+=('b21d354acd613a91cb88328753ec3aaeb174d6af042d89c5fcf3bbcced370751') # ISL version 0.22
-  sha256sums+=('412538bb65c799ac98e17e8cfcdacbb257a57362acfaaff254b0fcae970126d2') # ISL version 0.16.1
+#  sha256sums+=('412538bb65c799ac98e17e8cfcdacbb257a57362acfaaff254b0fcae970126d2') # ISL version 0.16.1
+  sha256sums+=('8ceebbf4d9a81afa2b4449113cee4b7cb14a687d7a549a963deb5e2a41458b6b') # ISL version 0.15
 fi
 validpgpkeys=(F3691687D867B81B51CE07D9BBE43771487328A9  # bpiotrowski@archlinux.org
               86CFFCA918CF3AF47147588051E8B148A9999C34  # evangelos@foutrelis.com
@@ -355,7 +356,7 @@ build() {
     extra_config+=(--with-{gmp,mpfr,mpc}=${_install_prefix})
   fi
 
-  if [ "$_enable_multilib" == "yes" && "$MSYSTEM" == "MINGW64" ]; then
+  if [[ "$_enable_multilib" == "yes" && "$MSYSTEM" == "MINGW64" ]]; then
     extra_config+=("--enable-multilib")
   else
     extra_config+=("--disable-multilib")
@@ -404,8 +405,6 @@ build() {
     --enable-languages=${_languages} \
     --disable-shared --enable-static \
     --enable-fully-dynamic-string \
-    --enable-libstdcxx-filesystem-ts=yes \
-    --enable-libstdcxx-time=yes \
     --disable-libstdcxx-pch \
     ${extra_config[@]} \
     --enable-lto \
