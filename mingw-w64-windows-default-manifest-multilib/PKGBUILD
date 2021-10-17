@@ -1,0 +1,59 @@
+# Maintainer: Alexey Pavlov <alexpux@gmail.com>
+
+_realname=windows-default-manifest
+pkgbase=mingw-w64-${_realname}-multilib
+if [[ "$MSYSTEM" == "MINGW64" ]]; then
+  pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-multilib"
+  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+else
+  pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+fi
+pkgver=6.4
+pkgrel=4
+pkgdesc='Default Windows application manifest (mingw-w64)'
+url='https://cygwin.com/'
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+license=('BSD')
+makedepends=('git' "${MINGW_PACKAGE_PREFIX}-gcc")
+_GIT_TAG="release-6_4"
+source=("git+https://sourceware.org/git/cygwin-apps/${_realname}.git#tag=${_GIT_TAG}")
+sha256sums=('SKIP')
+
+build() {
+  [[ -d ${srcdir}/build-${MINGW_CHOST} ]] && rm -rf ${srcdir}/build-${MINGW_CHOST}
+  cp -rf ${srcdir}/${_realname} ${srcdir}/build-${MINGW_CHOST}
+  cd ${srcdir}/build-${MINGW_CHOST}
+  ./configure \
+    --prefix=${MINGW_PREFIX}/${MINGW_CHOST} \
+    --build=${MINGW_CHOST} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST}
+  make
+
+  if [[ "$MSYSTEM" == "MINGW64" ]]; then
+    [[ -d ${srcdir}/build-i686-w64-mingw32 ]] && rm -rf ${srcdir}/build-i686-w64-mingw32
+    cp -rf ${srcdir}/${_realname} ${srcdir}/build-i686-w64-mingw32
+    cd ${srcdir}/build-i686-w64-mingw32
+    export PATH="/mingw32/bin:$PATH"
+    ./configure \
+      WINDRES='/mingw32/bin/windres.exe' \
+      --libdir=${MINGW_PREFIX}/${MINGW_CHOST}/lib32 \
+      --prefix=${MINGW_PREFIX}/${MINGW_CHOST} \
+      --build=i686-w64-mingw32 \
+      --host=i686-w64-mingw32 \
+      --target=i686-w64-mingw32
+    make
+  fi
+}
+
+package() {
+  cd ${srcdir}/build-${MINGW_CHOST}
+  make DESTDIR=${pkgdir} install
+
+  if [[ "$MSYSTEM" == "MINGW64" ]]; then
+    cd ${srcdir}/build-i686-w64-mingw32
+    make DESTDIR=${pkgdir} install
+  fi
+}
