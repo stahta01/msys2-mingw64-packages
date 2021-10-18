@@ -14,7 +14,7 @@ _enable_objc=yes
 
 _enable_3_stages=yes
 _enable_threads=yes
-_enable_graphite=yes
+_enable_graphite=no    # graphite had error during _enable_3_stages build
 _enable_system_mpc_mpfr_gmp_libs=no
 _enable_system_isl_lib=no
 _enable_multilib=no
