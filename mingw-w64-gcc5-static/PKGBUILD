@@ -235,8 +235,7 @@ prepare() {
   apply_patch_with_msg \
     000-gcc-5-mingw-Relocate-libintl.patch \
     001-gcc-4.8-libstdc++export.patch \
-    002-gcc-4.7-stdthreads.patch \
-    020-gcc-5-libgomp-Don-t-hard-code-MS-printf-attributes.patch
+    002-gcc-4.7-stdthreads.patch
 
   # Make Windows behave the same as Posix in the consideration of whether folder
   # "/exists/doesnt-exist/.." is a valid path.. in Posix, it isn't.
