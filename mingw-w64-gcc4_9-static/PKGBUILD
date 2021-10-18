@@ -13,8 +13,8 @@ _enable_fortran=no
 _enable_objc=no
 
 _enable_3_stages=no
-_enable_threads=yes
-_enable_graphite=yes
+_enable_threads=no
+_enable_graphite=no
 _enable_system_mpc_mpfr_gmp_libs=no
 _enable_system_isl_lib=no
 _enable_multilib=no
