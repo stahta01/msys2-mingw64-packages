@@ -9,10 +9,10 @@
 # When, static only build libgfortran and gcc-libs do not make sense to build.
 
 _enable_ada=no
-_enable_fortran=no
-_enable_objc=no
+_enable_fortran=yes
+_enable_objc=yes
 
-_enable_3_stages=no
+_enable_3_stages=yes
 _enable_threads=yes
 _enable_graphite=yes
 _enable_system_mpc_mpfr_gmp_libs=no
