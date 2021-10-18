@@ -6,7 +6,6 @@
 # Contributor: wirx6 <wirx654@gmail.com>
 # Contributor: Kirill Müller <krlmlr@mailbox.org>
 
-# Package libgccjit seems to require enable-shared to build.
 # When, static only build libgfortran and gcc-libs do not make sense to build.
 
 _enable_ada=no
@@ -444,8 +443,7 @@ package_gcc5-static() {
            "${MINGW_PACKAGE_PREFIX}-zstd")
   provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-base" "${MINGW_PACKAGE_PREFIX}-${_realname}")
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-base"
-             "${MINGW_PACKAGE_PREFIX}-${_realname}"
-             "${MINGW_PACKAGE_PREFIX}-libgccjit")
+             "${MINGW_PACKAGE_PREFIX}-${_realname}")
 
   if [[ "$_enable_threads" == "yes" ]]; then
     depends+=("${MINGW_PACKAGE_PREFIX}-winpthreads")
